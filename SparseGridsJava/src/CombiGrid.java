@@ -22,8 +22,9 @@ public class CombiGrid {
 		Arrays.fill(grid.grid, 1.0);
 		//System.out.println("Array size is: " + grid.grid.length);
 		//grid.hierarchizeUnoptimized();
-		grid.hierarchizeUnoptimizedThreads(8);
-		grid.hierarchizeUnoptimizedTasks(100);
+		//grid.hierarchizeUnoptimizedThreads(8);
+		//grid.hierarchizeUnoptimizedTasks(100);
+		grid.hierarchizeUnoptimizedParallelStream();
 		//grid.printValues();
 	}
 
@@ -269,8 +270,61 @@ public class CombiGrid {
 			futures.clear();
 		}
 	}
+	
+	public void hierarchizeUnoptimizedParallelStream() {
+		int dimension;
+		int start;
+		int stride = 1;
+		int pointsInDimension;
+		int numberOfPoles;
+		int jump;
+		List<Pole> poles = new ArrayList<Pole>();
+
+
+		//dimension 1 separate as start of each pole is easier to calculate
+		pointsInDimension = pointsPerDimension[0];
+		numberOfPoles = gridSize / pointsInDimension;
+		for (int i = 0; i < numberOfPoles; i++){
+			start = i * pointsInDimension;
+			poles.add(new Pole(start, 1, pointsInDimension, 0));
+		}
+		// end dimension 1
+		poles
+	    .parallelStream()
+	    .forEach(pole -> hierarchize1DUnoptimized(pole.start, pole.stride, pole.pointsInDimension, pole.dimension));
+
+		for(dimension = 1; dimension < dimensions; dimension++){ // hierarchize all dimensions
+			poles.clear();
+			stride *= pointsInDimension;
+			pointsInDimension = pointsPerDimension[dimension];
+			jump = stride * pointsInDimension;
+			numberOfPoles = gridSize / pointsInDimension;
+			for (int i = 0; i < numberOfPoles; i++){ // integer operations form bottleneck here -- nested loops are twice as slow
+				int div = i / stride;
+				start = div * jump + (i % stride);
+				poles.add(new Pole(start, stride, pointsInDimension, dimension));
+			}
+			poles
+			 .parallelStream()
+			 .forEach(pole -> hierarchize1DUnoptimized(pole.start, pole.stride, pole.pointsInDimension, pole.dimension));
+		} // end loop over dimension 2 to d
+	}
 
 	private int myPow2(int i) {
 		return 1 << i;
+	}
+}
+
+class Pole {
+	public int start;
+	public int stride;
+	public int pointsInDimension;
+	public int dimension;
+	
+	public Pole(int start, int stride, int pointsInDimension, int dimension) {
+		this.start = start;
+		this.stride = stride;
+		this.pointsInDimension = pointsInDimension;
+		this.dimension = dimension;
 	}
 }
