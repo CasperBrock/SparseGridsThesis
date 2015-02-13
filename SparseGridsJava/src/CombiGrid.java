@@ -167,22 +167,13 @@ public class CombiGrid {
 		numberOfPoles = gridSize / pointsInDimension;
 		polesPerThread = numberOfPoles / numberOfThreads;
 		for(int i = 0; i < numberOfThreads; i++) {
-			final int k = i;
 			final int n = pointsInDimension;
-			final int ppt = polesPerThread;
-			final int poles = numberOfPoles;
+			final int from = i * polesPerThread;
+			final int to = (i + 1 == numberOfThreads) ? numberOfPoles : polesPerThread * (i + 1); 
 			threads[i] = new Thread(new Runnable() { public void run() {
-				if(k + 1 == numberOfThreads) {
-					for (int j = k * ppt; j < poles; j++) {
-						int start = j * n;
-						hierarchize1DUnoptimized(start, 1, n, 0);
-					}
-				}
-				else {
-					for (int j = k * ppt; j < (k + 1) * ppt; j++) {
-						int start = j * n;
-						hierarchize1DUnoptimized(start, 1, n, 0);
-					}
+				for (int j = from; j < to; j++) {
+					int start = j * n;
+					hierarchize1DUnoptimized(start, 1, n, 0);
 				}// end dimension 1
 			}});
 		}
@@ -199,26 +190,16 @@ public class CombiGrid {
 			numberOfPoles = gridSize / pointsInDimension;
 			polesPerThread = numberOfPoles / numberOfThreads;
 			for(int i = 0; i < numberOfThreads; i++) {
-				final int k = i;
-				final int strides = stride;
+				final int s = stride;
 				final int d = dimension;
 				final int n = pointsInDimension;
-				final int ppt = polesPerThread;
-				final int poles = numberOfPoles;
+				final int from = i * polesPerThread;
+				final int to = (i + 1 == numberOfThreads) ? numberOfPoles : polesPerThread * (i + 1);
 				threads[i] = new Thread(new Runnable() { public void run() {
-					if(k + 1 == numberOfThreads) {
-						for(int j = k * ppt; j < poles; j++) {
-							int div = j / strides;
-							int start = div * jump + (j % strides);
-							hierarchize1DUnoptimized(start, strides, n, d);
-						}
-					}
-					else {
-						for (int j = k * ppt; j < (k + 1) * ppt; j++) { // integer operations form bottleneck here -- nested loops are twice as slow
-							int div = j / strides;
-							int start = div * jump + (j % strides);
-							hierarchize1DUnoptimized(start, strides, n, d);
-						}
+					for (int j = from; j < to; j++) { // integer operations form bottleneck here -- nested loops are twice as slow
+						int div = j / s;
+						int start = div * jump + (j % s);
+						hierarchize1DUnoptimized(start, s, n, d);
 					}
 				}});
 			} // end loop over dimension 2 to d
