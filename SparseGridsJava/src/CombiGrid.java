@@ -127,7 +127,7 @@ public class CombiGrid {
 	}
 
 	/***
-	 * Hierachizes the grid with a sequential unoptimized algorithm
+	 * Hierarchizes the grid with a sequential unoptimized algorithm
 	 */
 	public void hierarchizeUnoptimized() {
 		int dimension;
@@ -160,6 +160,11 @@ public class CombiGrid {
 		} // end loop over dimension 2 to d
 	}
 
+	/***
+	 * Hierarchizes the grid with a parallel unoptimized algorithm.
+	 * 
+	 * @param numberOfThreads The amount of threads to use for the parallism
+	 */
 	public void hierarchizeUnoptimizedThreads(final int numberOfThreads) {
 		int dimension;
 		int stride = 1;
@@ -217,6 +222,11 @@ public class CombiGrid {
 		}
 	}
 
+	/***
+	 * Hierarchizes the grid with a parallel unoptimized algorithm using the Java Task framework
+	 * 
+	 * @param numberOfTasks The number of tasks to use
+	 */
 	public void hierarchizeUnoptimizedTasks(final int numberOfTasks) {
 		int dimension;
 		int stride = 1;
@@ -224,13 +234,12 @@ public class CombiGrid {
 		int polesPerTask;
 		int numberOfPoles;
 		ExecutorService executor = Executors.newWorkStealingPool();
-
+		List<Future<?>> futures = new ArrayList<Future<?>>();
 
 		//dimension 1 separate as start of each pole is easier to calculate
 		pointsInDimension = pointsPerDimension[0];
 		numberOfPoles = gridSize / pointsInDimension;
 		polesPerTask = numberOfPoles / numberOfTasks;
-		List<Future<?>> futures = new ArrayList<Future<?>>();
 		for(int i = 0; i < numberOfTasks; i++) {
 			final int n = pointsInDimension;
 			final int from = i * polesPerTask;
@@ -271,6 +280,9 @@ public class CombiGrid {
 		}
 	}
 	
+	/***
+	 * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework
+	 */
 	public void hierarchizeUnoptimizedParallelStream() {
 		int dimension;
 		int start;
@@ -315,6 +327,10 @@ public class CombiGrid {
 	}
 }
 
+/***
+ * Object to contain the variables needed for a pole.
+ * Used in the hierarchizeUnoptimizedParallelStream method.
+ */
 class Pole {
 	public int start;
 	public int stride;
