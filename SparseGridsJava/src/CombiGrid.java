@@ -10,12 +10,15 @@ public class CombiGrid {
 	int[] pointsPerDimension;
 
 	public static void main(String[] args) {
-		int[] levels = {2, 2, 2, 2, 2};
+		int[] levels = {6, 5, 5, 5, 5};
 		CombiGrid grid = new CombiGrid(5, levels);
+		//int[] levels = {13, 13};
+		//CombiGrid grid = new CombiGrid(2, levels);
 		Arrays.fill(grid.grid, 1.0);
+		//System.out.println("Array size is: " + grid.grid.length);
 		//grid.hierarchizeUnoptimized();
 		grid.hierarchizeUnoptimizedThreads(8);
-		grid.printValues();
+		//grid.printValues();
 	}
 
 	public CombiGrid(int dimensions, int[] levels) {
@@ -92,8 +95,8 @@ public class CombiGrid {
 			offset += stepSize;
 			left = 0.5 * grid[start + offset * stride - parOffsetStrided];
 			for (ctr = 1; ctr < steps - 1; ctr++) {
-				val1 = grid[start+offset*stride];
-				right = 0.5 * grid[start+offset*stride+parOffsetStrided];
+				val1 = grid[start + offset * stride];
+				right = 0.5 * grid[start + offset * stride + parOffsetStrided];
 				val2 = val1 - left;
 				val3 = val2 - right;
 				grid[start+offset*stride] = (int) val3;
@@ -111,9 +114,9 @@ public class CombiGrid {
 		}
 
 		right = 0.5 * grid[start + (offset + parentOffset) * stride];
-		grid[start+offset*stride] -= right;
+		grid[start + offset * stride] -= right;
 		offset += stepSize;
-		grid[start+offset*stride] -= right;
+		grid[start + offset * stride] -= right;
 	}
 
 	/***
@@ -150,30 +153,35 @@ public class CombiGrid {
 		} // end loop over dimension 2 to d
 	}
 
-	public void hierarchizeUnoptimizedThreads(int numberOfThreads) {
+	public void hierarchizeUnoptimizedThreads(final int numberOfThreads) {
 		int dimension;
 		int stride = 1;
-		final int polesPerThread;
+		int pointsInDimension;
+		int polesPerThread;
+		int numberOfPoles;
 		Thread[] threads = new Thread[numberOfThreads];
 
 
 		//dimension 1 separate as start of each pole is easier to calculate
-		final int pointsInDimension = pointsPerDimension[0];
-		final int numberOfPoles = gridSize / pointsInDimension;
+		pointsInDimension = pointsPerDimension[0];
+		numberOfPoles = gridSize / pointsInDimension;
 		polesPerThread = numberOfPoles / numberOfThreads;
 		for(int i = 0; i < numberOfThreads; i++) {
 			final int k = i;
+			final int n = pointsInDimension;
+			final int ppt = polesPerThread;
+			final int poles = numberOfPoles;
 			threads[i] = new Thread(new Runnable() { public void run() {
 				if(k + 1 == numberOfThreads) {
-					for (int j = k * polesPerThread; j < numberOfPoles; j++) {
-						int start = j * pointsInDimension;
-						hierarchize1DUnoptimized(start, 1, pointsInDimension, 0);
+					for (int j = k * ppt; j < poles; j++) {
+						int start = j * n;
+						hierarchize1DUnoptimized(start, 1, n, 0);
 					}
 				}
 				else {
-					for (int j = k * polesPerThread; j < (k + 1) * polesPerThread; j++) {
-						int start = j * pointsInDimension;
-						hierarchize1DUnoptimized(start, 1, pointsInDimension, 0);
+					for (int j = k * ppt; j < (k + 1) * ppt; j++) {
+						int start = j * n;
+						hierarchize1DUnoptimized(start, 1, n, 0);
 					}
 				}// end dimension 1
 			}});
@@ -186,27 +194,30 @@ public class CombiGrid {
 
 		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
 			stride *= pointsInDimension;
-			final int pointsInDimension2 = pointsPerDimension[dimension];
-			final int jump = stride * pointsInDimension2;
-			final int numberOfPoles2 = gridSize / pointsInDimension2;
-			final int polesPerThread2 = numberOfPoles2 / numberOfThreads;
+			pointsInDimension = pointsPerDimension[dimension];
+			final int jump = stride * pointsInDimension;
+			numberOfPoles = gridSize / pointsInDimension;
+			polesPerThread = numberOfPoles / numberOfThreads;
 			for(int i = 0; i < numberOfThreads; i++) {
 				final int k = i;
 				final int strides = stride;
 				final int d = dimension;
+				final int n = pointsInDimension;
+				final int ppt = polesPerThread;
+				final int poles = numberOfPoles;
 				threads[i] = new Thread(new Runnable() { public void run() {
 					if(k + 1 == numberOfThreads) {
-						for(int j = k * polesPerThread2; j < numberOfPoles2; j++) {
+						for(int j = k * ppt; j < poles; j++) {
 							int div = j / strides;
 							int start = div * jump + (j % strides);
-							hierarchize1DUnoptimized(start, strides, pointsInDimension2, d);
+							hierarchize1DUnoptimized(start, strides, n, d);
 						}
 					}
 					else {
-						for (int j = k * polesPerThread2; j < (k + 1) * polesPerThread2; j++) { // integer operations form bottleneck here -- nested loops are twice as slow
+						for (int j = k * ppt; j < (k + 1) * ppt; j++) { // integer operations form bottleneck here -- nested loops are twice as slow
 							int div = j / strides;
 							int start = div * jump + (j % strides);
-							hierarchize1DUnoptimized(start, strides, pointsInDimension2, d);
+							hierarchize1DUnoptimized(start, strides, n, d);
 						}
 					}
 				}});
