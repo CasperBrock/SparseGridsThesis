@@ -1,8 +1,10 @@
 import java.util.Arrays;
 
-
-
 public class testSuite {
+
+	/**
+	 * @param args
+	 */
 	
 	static long millisStart;
 	static long millisStop;
