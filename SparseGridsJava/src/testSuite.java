@@ -22,6 +22,11 @@ public class testSuite {
 	static long nanoStopStream;
 	static int bestThreadAmount;
 	static long bestThreaded;
+	static long nanoStartTask;
+	static long nanoStopTask;
+	static long currentTimeTask;
+	static long timeTask;
+	
 
 	//This class can run various tests on the CombiGrid.java code.
 	//supposed to test amount of cores and threads, threading methods and time. 
@@ -29,10 +34,18 @@ public class testSuite {
 		cores = Runtime.getRuntime().availableProcessors();
 		mem = Runtime.getRuntime().maxMemory()/(1024*1024);
 		System.out.println("Running tests on "+cores+" cores using up to "+mem+" MB of memory.");
-		testStandardThreadingIncreasingThreads();
+		
+		//Which tests to run. The following three will increase grid size gradually, and test the average runtime over 10 iterations.
+		//testFullThreads(); //Note that these are designed to crash, to you can only run one.
+		//testFullTasks();
+		//testFullPStream();
+		
+		//This test will compare the best results for each method, and only print those.
+		testSideways();
+		
 	}
-	static void testStandardThreadingIncreasingThreads(){ //TODO make this method compare the different threading methods.
-		System.out.println("dim\tlev\tthreads\ttime in ms\ttype");
+	static void testFullThreads(){ //TODO make this method compare the different threading methods.
+		System.out.println("dim\tlev\tthreads/tasks\ttime\ttype");
 		
 		for (int i = 2; i<7; i++){// this loop will relate to the number of dimensions, as this scales strongest		
 			for (int j = 2; j<10;j++){// this loop will relate to number of levels.
@@ -56,29 +69,84 @@ public class testSuite {
 						currentTime = nanoStop-nanoStart; 		
 						time += currentTime;
 					}
-
-					//if (time/10 < best) {
-					//	best=time/10;
-					//	bestThreads=k;System.out.println("Test D" + i + "-L" + j + "-T"+k+" took " + (time/10) + " nanoseconds to complete in average." );
-					//}
 					System.out.println(i+"\t"+j+"\t"+k+"\t"+time/10+"\tThreads"); // will print info for Thread
-					//System.out.println("Test D" + i + "-L" + j + "-T"+k+" took " + (time/10) + " nanoseconds to complete in average." );
-					//System.out.println("");
 				}
-				//System.out.println("Best number of threads for D"+i+"-L"+j+" is "+bestThreads+" in " + best + " nanoseconds.");
-				//System.out.println("");
 			}
 		}		
 	}
+	
+	static void testFullPStream(){ //TODO make this method compare the different threading methods.
+		System.out.println("dim\tlev\tthreads/tasks\ttime in ms\ttype");
+		
+		for (int i = 2; i<7; i++){// this loop will relate to the number of dimensions, as this scales strongest		
+			for (int j = 2; j<10;j++){// this loop will relate to number of levels.
+				bestThreads=0;
+				double best = Integer.MAX_VALUE;
+					time = 0;
+					for (int l = 0;l<10;l++){
+
+						int[] levels = new int[i]; //array of levels, must be as long as the amount of dimensions.
+
+						Arrays.fill(levels, j); //lines that create the objects we are to work on. Should not be timed, ofc.
+						CG = new CombiGrid(i, levels);
+						Arrays.fill(CG.grid, 1);					
+						nanoStart = System.currentTimeMillis();
+						CG.hierarchizeUnoptimizedParallelStream();
+						//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
+						nanoStop = System.currentTimeMillis();
+
+						currentTime = nanoStop-nanoStart; 		
+						time += currentTime;
+					}
+					System.out.println(i+"\t"+j+"\t"+"not known"+"\t"+time/10+"\tThreads"); // will print info for Thread
+				}
+			}
+		}		
+	
+	
+	static void testFullTasks(){ //TODO make this method compare the different threading methods.
+		System.out.println("dim\tlev\tthreads/tasks\ttime in ms\ttype");
+		
+		for (int i = 2; i<7; i++){// this loop will relate to the number of dimensions, as this scales strongest		
+			for (int j = 2; j<10;j++){// this loop will relate to number of levels.
+				bestThreads=0;
+				double best = Integer.MAX_VALUE;
+				for (k = 1; k<10;k++){//this loop iterates over number of threads.
+					//System.out.println("Test with " + i + " dimensions, all with level " + j + ", running in "+k+" threads.");
+					time = 0;
+					for (int l = 0;l<10;l++){
+
+						int[] levels = new int[i]; //array of levels, must be as long as the amount of dimensions.
+
+						Arrays.fill(levels, j); //lines that create the objects we are to work on. Should not be timed, ofc.
+						CG = new CombiGrid(i, levels);
+						Arrays.fill(CG.grid, 1);					
+						nanoStart = System.currentTimeMillis();
+						CG.hierarchizeUnoptimizedTasks(k);
+						//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
+						nanoStop = System.currentTimeMillis();
+
+						currentTime = nanoStop-nanoStart; 		
+						time += currentTime;
+					}
+					System.out.println(i+"\t"+j+"\t"+k+"\t"+time/10+"\tThreads"); // will print info for Thread
+				}
+			}
+		}		
+	}
+	
+	
 
 	static void testSideways(){ //TODO make this method compare the different threading methods.
 		System.out.println("dim\tlev\tthreads\ttime in ms\ttype");
 
-		for (int i = 2; i<7; i++){// this loop will relate to the number of dimensions, as this scales strongest		
-			for (int j = 2; j<6;j++){// this loop will relate to number of levels.
+		for (int i = 3; i<7; i++){// this loop will relate to the number of dimensions, as this scales strongest		
+			for (int j = 2; j<7;j++){// this loop will relate to number of levels.
 				time = 0;
 				timeStream=0;
 				bestThreadAmount=0;
+				int bestTaskAmount=0;
+				float bestTimeTask=0;
 				for (int l = 0;l<10;l++){
 
 					int[] levels = new int[i]; //array of levels, must be as long as the amount of dimensions.
@@ -102,7 +170,7 @@ public class testSuite {
 					}
 					
 
-
+					//Runs P-STREAM
 					CG = new CombiGrid(i, levels); //get a new grid for comparison.
 					Arrays.fill(CG.grid, 1);
 
@@ -113,10 +181,35 @@ public class testSuite {
 
 					currentTimeStream = nanoStopStream-nanoStartStream; 		
 					timeStream += currentTimeStream;
+					
+					float currentBestTaskTime=Integer.MAX_VALUE;
+					//Runs tasks
+					for (int m =1; m<10; m++){
+						CG = new CombiGrid(i, levels); //get a new grid for comparison.
+						Arrays.fill(CG.grid, 1);
+
+						nanoStartTask = System.currentTimeMillis();
+						CG.hierarchizeUnoptimizedTasks(m);
+						//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
+						nanoStopTask = System.currentTimeMillis();
+
+						currentTimeTask = nanoStopTask-nanoStartTask; 		
+						timeTask += currentTimeTask;	//Runs tasks
+						
+						if (currentTimeTask<currentBestTaskTime){
+							currentBestTaskTime=currentTimeTask;
+							bestTaskAmount=m;
+						}
+						
+							bestTimeTask=currentBestTaskTime;
+							timeTask += currentTimeTask;	//Runs tasks
+					}
+					
 				}
 				System.out.println(i+"\t"+j+"\t"+bestThreadAmount+"\t"+bestThreaded+"\tThreads"); // will print info for Thread
 				System.out.println(i+"\t"+j+"\tnull\t"+timeStream/10+"\tP-Stream");
 				//System.out.println("D" + i + "-L" + j + "\t" + (timeStream/10) + " millis to complete in average for P-Stream");
+				System.out.println(i+"\t"+j+"\t"+bestTaskAmount+"\t"+bestTimeTask+"\tTasks");
 				System.out.println("");
 			}
 		}
