@@ -17,7 +17,7 @@ public class CombiGrid {
 	public static void main(String[] args) {
 		int[] levels = {6, 5, 5, 5, 5};
 		CombiGrid grid = new CombiGrid(5, levels);
-		//int[] levels = {13, 13};
+		//int[] levels = {3, 3};
 		//CombiGrid grid = new CombiGrid(2, levels);
 		Arrays.fill(grid.grid, 1.0);
 		//System.out.println("Array size is: " + grid.grid.length);
@@ -25,6 +25,7 @@ public class CombiGrid {
 		//grid.hierarchizeUnoptimizedThreads(8);
 		//grid.hierarchizeUnoptimizedTasks(100);
 		grid.hierarchizeUnoptimizedParallelStream();
+		//grid.hierarchizeUnoptimizedParallelStream(100);
 		//grid.printValues();
 	}
 
@@ -321,6 +322,55 @@ public class CombiGrid {
 			 .forEach(pole -> hierarchize1DUnoptimized(pole.start, pole.stride, pole.pointsInDimension, pole.dimension));
 		} // end loop over dimension 2 to d
 	}
+	
+	/***
+	 * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework
+	 */
+	public void hierarchizeUnoptimizedParallelStream(int numberOfBlocks) {
+		int dimension;
+		int start;
+		int stride = 1;
+		int pointsInDimension;
+		int numberOfPoles;
+		int jump;
+		int polesPerBlock;
+		List<PoleBlock> blocks = new ArrayList<PoleBlock>();
+
+
+		//dimension 1 separate as start of each pole is easier to calculate
+		pointsInDimension = pointsPerDimension[0];
+		numberOfPoles = gridSize / pointsInDimension;
+		polesPerBlock = numberOfPoles / numberOfBlocks;
+		
+		for(int i = 0; i < numberOfBlocks; i++) {
+			int from = i * polesPerBlock;
+			int to = (i + 1 == numberOfBlocks) ? numberOfPoles : polesPerBlock * (i + 1);
+			blocks.add(new PoleBlock(this, 1, pointsInDimension, 0, 0, from, to));
+		}
+		
+		blocks
+	    .parallelStream()
+	    .forEach(pole -> pole.hierarchize());
+
+		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
+			blocks.clear();
+			stride *= pointsInDimension;
+			pointsInDimension = pointsPerDimension[dimension];
+			jump = stride * pointsInDimension;
+			numberOfPoles = gridSize / pointsInDimension;
+			polesPerBlock = numberOfPoles / numberOfBlocks;
+			for(int i = 0; i < numberOfBlocks; i++) {
+				int from = i * polesPerBlock;
+				int to = (i + 1 == numberOfBlocks) ? numberOfPoles : polesPerBlock * (i + 1);
+				blocks.add(new PoleBlock(this, stride, pointsInDimension, dimension, jump, from, to));
+			}
+			
+			blocks
+		    .parallelStream()
+		    .forEach(pole -> pole.hierarchize());
+		}
+			 // end loop over dimension 2 to d
+	}
 
 	private int myPow2(int i) {
 		return 1 << i;
@@ -342,5 +392,41 @@ class Pole {
 		this.stride = stride;
 		this.pointsInDimension = pointsInDimension;
 		this.dimension = dimension;
+	}
+}
+
+class PoleBlock {
+	CombiGrid grid;
+	int stride;
+	int pointsInDimension;
+	int dimension;
+	int jump;
+	int from, to;
+	
+	public PoleBlock(CombiGrid grid, int stride, int pointsInDimension, int dimension, int jump, int from, int to) {
+		this.grid = grid;
+		this.stride = stride;
+		this.pointsInDimension = pointsInDimension;
+		this.dimension = dimension;
+		this.jump = jump;
+		this.from = from;
+		this.to = to;
+	}
+	
+	public void hierarchize() {
+		if(dimension == 0) {
+			for (int i = from; i < to; i++) {
+				int start = i * pointsInDimension;
+				grid.hierarchize1DUnoptimized(start, 1, pointsInDimension, 0);
+			}
+		}
+		
+		else {
+			for (int i = from; i < to; i++) { 
+				int div = i / stride;
+				int start = div * jump + (i % stride);
+				grid.hierarchize1DUnoptimized(start, stride, pointsInDimension, dimension);
+			}
+		}
 	}
 }
