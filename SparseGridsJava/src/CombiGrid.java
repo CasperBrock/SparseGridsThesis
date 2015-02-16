@@ -2,11 +2,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 
 public class CombiGrid {
 
@@ -17,15 +17,16 @@ public class CombiGrid {
 	int[] pointsPerDimension;
 
 	public static void main(String[] args) {
-		int[] levels = {2, 2, 2, 2, 2};
+		int[] levels = {3, 2, 3, 2, 3};
 		CombiGrid grid = new CombiGrid(5, levels);
 		//int[] levels = {3, 3};
 		//CombiGrid grid = new CombiGrid(2, levels);
-		Arrays.fill(grid.grid, 1.0);
+		//Arrays.fill(grid.grid, 1.0);
+		grid.setValues(new allOnes());
 		//System.out.println("Array size is: " + grid.grid.length);
 		//grid.hierarchizeUnoptimized();
 		//grid.hierarchizeUnoptimizedThreads(8);
-		grid.hierarchizeUnoptimizedThreadsOnce(8);
+		//grid.hierarchizeUnoptimizedThreadsOnce(8);
 		//grid.hierarchizeUnoptimizedTasks(100);
 		//grid.hierarchizeUnoptimizedParallelStream();
 		//grid.hierarchizeUnoptimizedParallelStream(100);
@@ -78,6 +79,42 @@ public class CombiGrid {
 				}
 			}
 		}
+	}
+	
+	public void setValues(gridFunction func) {
+		double[] stepsize = new double[dimensions];
+		double[] x = new double[dimensions];
+		int[] levelSets = new int[dimensions];
+		levelSets[0] = 1;
+		int[] dimensionCounter = new int[dimensions];
+
+		for (int d = 1; d < dimensions; d++){
+			levelSets[d] = levelSets[d - 1] * pointsPerDimension[d - 1];
+		}
+
+		for (int d = 0; d < dimensions; d++){
+			stepsize[d] = Math.pow(2, -levels[d]);
+			dimensionCounter[d] = 1;
+		}
+
+		for (int counter = 0; counter < gridSize; counter++){
+			for (int d = 0; d < dimensions; d++){
+				if (dimensionCounter[d] > pointsPerDimension[d] && d == dimensions - 1) {
+					return;
+				}
+				if (dimensionCounter[d] > pointsPerDimension[d] && d < dimensions - 1) {
+					dimensionCounter[d] = 1;
+					dimensionCounter[d + 1]++;
+				}
+			}
+			for (int d = 0; d < dimensions; d ++){
+				x[d] = dimensionCounter[d] * stepsize[d];
+			}
+			
+			grid[counter] = func.call(x);
+			dimensionCounter[0]++;
+		}
+		return ;
 	}
 
 	/***
@@ -262,15 +299,7 @@ public class CombiGrid {
 				}// end dimension 1
 
 				//Wait for all threads to be done with the first dimension
-				try {
-					barrier.await();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (BrokenBarrierException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				try { barrier.await(); } catch (InterruptedException | BrokenBarrierException e) {}
 
 
 				for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
@@ -286,13 +315,9 @@ public class CombiGrid {
 						int start = div * jump + (j % stride);
 						hierarchize1DUnoptimized(start, stride, pointsInDimension, dimension);
 					}
+					
 					//Wait for all threads to be done with this dimension
-					try {
-						barrier.await();
-					} catch (InterruptedException | BrokenBarrierException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					try { barrier.await(); } catch (InterruptedException | BrokenBarrierException e) {}
 				} // end loop over dimension 2 to d
 			}});
 		}
