@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -23,9 +25,10 @@ public class CombiGrid {
 		//System.out.println("Array size is: " + grid.grid.length);
 		//grid.hierarchizeUnoptimized();
 		//grid.hierarchizeUnoptimizedThreads(8);
+		grid.hierarchizeUnoptimizedThreadsOnce(8);
 		//grid.hierarchizeUnoptimizedTasks(100);
 		//grid.hierarchizeUnoptimizedParallelStream();
-		grid.hierarchizeUnoptimizedParallelStream(100);
+		//grid.hierarchizeUnoptimizedParallelStream(100);
 		grid.printValues();
 	}
 
@@ -128,7 +131,8 @@ public class CombiGrid {
 	}
 
 	/***
-	 * Hierarchizes the grid with a sequential unoptimized algorithm
+	 * Hierarchizes the grid with a sequential unoptimized algorithm.
+	 * This method performs the entire hierarchization sequentially.
 	 */
 	public void hierarchizeUnoptimized() {
 		int dimension;
@@ -163,8 +167,10 @@ public class CombiGrid {
 
 	/***
 	 * Hierarchizes the grid with a parallel unoptimized algorithm.
+	 * This method creates new threads for each dimension, resulting in a overhead
+	 * on thread creation.
 	 * 
-	 * @param numberOfThreads The amount of threads to use for the parallism
+	 * @param numberOfThreads The amount of threads to use for the parallelization
 	 */
 	public void hierarchizeUnoptimizedThreads(final int numberOfThreads) {
 		int dimension;
@@ -224,7 +230,83 @@ public class CombiGrid {
 	}
 
 	/***
-	 * Hierarchizes the grid with a parallel unoptimized algorithm using the Java Task framework
+	 * Hierarchizes the grid using an unoptimized algorithm using threads.
+	 * This method creates the threads only once and runs the looping calculations inside the threads.
+	 * Creates less overhead on thread creation, but all loop calculations are done numberOfThreads times. 
+	 * 
+	 * @param numberOfThreads The number of threads to use for the parallelization
+	 */
+	public void hierarchizeUnoptimizedThreadsOnce(final int numberOfThreads) {
+		final CyclicBarrier barrier = new CyclicBarrier(numberOfThreads);
+		Thread[] threads = new Thread[numberOfThreads];
+
+		for(int k = 0; k < numberOfThreads; k++) {
+			final int i = k;
+			threads[i] = new Thread(new Runnable() {public void run() {
+				int dimension;
+				int stride = 1;
+				int pointsInDimension;
+				int polesPerThread;
+				int numberOfPoles;
+				int jump;
+				int from, to;
+				//dimension 1 separate as start of each pole is easier to calculate
+				pointsInDimension = pointsPerDimension[0];
+				numberOfPoles = gridSize / pointsInDimension;
+				polesPerThread = numberOfPoles / numberOfThreads;
+				from = i * polesPerThread;
+				to = (i + 1 == numberOfThreads) ? numberOfPoles : polesPerThread * (i + 1);
+				for (int j = from; j < to; j++) {
+					int start = j * pointsInDimension;
+					hierarchize1DUnoptimized(start, 1, pointsInDimension, 0);
+				}// end dimension 1
+
+				//Wait for all threads to be done with the first dimension
+				try {
+					barrier.await();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (BrokenBarrierException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+
+				for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
+					stride *= pointsInDimension;
+					pointsInDimension = pointsPerDimension[dimension];
+					jump = stride * pointsInDimension;
+					numberOfPoles = gridSize / pointsInDimension;
+					polesPerThread = numberOfPoles / numberOfThreads;
+					from = i * polesPerThread;
+					to = (i + 1 == numberOfThreads) ? numberOfPoles : polesPerThread * (i + 1);
+					for (int j = from; j < to; j++) { // integer operations form bottleneck here -- nested loops are twice as slow
+						int div = j / stride;
+						int start = div * jump + (j % stride);
+						hierarchize1DUnoptimized(start, stride, pointsInDimension, dimension);
+					}
+					//Wait for all threads to be done with this dimension
+					try {
+						barrier.await();
+					} catch (InterruptedException | BrokenBarrierException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} // end loop over dimension 2 to d
+			}});
+		}
+		for(Thread t : threads)
+			t.start();
+		for(Thread t : threads)
+			try { t.join(); } catch (InterruptedException e) {}
+	}
+
+	/***
+	 * Hierarchizes the grid with a parallel unoptimized algorithm using the Java Task framework.
+	 * Creates an overhead in task creation and some in execution, but avoids the overhead of
+	 * creating many threads. All thread creation and maintenance is handled by the Java
+	 * ExecutorService.
 	 * 
 	 * @param numberOfTasks The number of tasks to use
 	 */
@@ -282,7 +364,9 @@ public class CombiGrid {
 	}
 
 	/***
-	 * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework
+	 * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework.
+	 * This method creates a pole object for each pole, and then uses the parallelStream() method to run all the poles
+	 * in parallel. All the parallelism is done by the Java framework.
 	 */
 	public void hierarchizeUnoptimizedParallelStream() {
 		int dimension;
@@ -324,7 +408,12 @@ public class CombiGrid {
 	}
 
 	/***
-	 * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework
+	 * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework.
+	 * This method creates numberOfBlocks poleBlock objects per dimension to hierarchize a subset of the poles.
+	 * Then is uses the parallelStream() method to run the hierarchization in parallel.
+	 * All parallism is handled by the Java framework.
+	 *
+	 * @param numberOfBlocks The number of block objects to use
 	 */
 	public void hierarchizeUnoptimizedParallelStream(int numberOfBlocks) {
 		int dimension;
