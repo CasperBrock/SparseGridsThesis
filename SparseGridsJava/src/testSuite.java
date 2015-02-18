@@ -144,6 +144,8 @@ public class testSuite {
 			for (int j = 2; j<7;j++){// this loop will relate to number of levels.
 				time = 0;
 				timeStream=0;
+				currentTime=0;
+				timeTask=0;
 				bestThreadAmount=0;
 				int bestTaskAmount=0;
 				float bestTimeTask=0;
@@ -169,18 +171,19 @@ public class testSuite {
 						}
 					}
 					
-
 					//Runs P-STREAM
-					CG = new CombiGrid(i, levels); //get a new grid for comparison.
-					Arrays.fill(CG.grid, 1);
+					for (int n =1; n<10; n++){
+						CG = new CombiGrid(i, levels); //get a new grid for comparison.
+						Arrays.fill(CG.grid, 1);
 
-					nanoStartStream = System.currentTimeMillis();
-					CG.hierarchizeUnoptimizedParallelStream();
-					//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
-					nanoStopStream = System.currentTimeMillis();
+						nanoStartStream = System.currentTimeMillis();
+						CG.hierarchizeUnoptimizedParallelStream();
+						//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
+						nanoStopStream = System.currentTimeMillis();
 
-					currentTimeStream = nanoStopStream-nanoStartStream; 		
-					timeStream += currentTimeStream;
+						currentTimeStream = nanoStopStream-nanoStartStream; 		
+						timeStream += currentTimeStream;
+					}
 					
 					float currentBestTaskTime=Integer.MAX_VALUE;
 					//Runs tasks
@@ -200,16 +203,11 @@ public class testSuite {
 							currentBestTaskTime=currentTimeTask;
 							bestTaskAmount=m;
 						}
-						
-							bestTimeTask=currentBestTaskTime;
-							timeTask += currentTimeTask;	//Runs tasks
 					}
-					
 				}
 				System.out.println(i+"\t"+j+"\t"+bestThreadAmount+"\t"+bestThreaded+"\tThreads"); // will print info for Thread
 				System.out.println(i+"\t"+j+"\tnull\t"+timeStream/10+"\tP-Stream");
-				//System.out.println("D" + i + "-L" + j + "\t" + (timeStream/10) + " millis to complete in average for P-Stream");
-				System.out.println(i+"\t"+j+"\t"+bestTaskAmount+"\t"+bestTimeTask+"\tTasks");
+				System.out.println(i+"\t"+j+"\t"+bestTaskAmount+"\t"+timeTask/10+"\tTasks");
 				System.out.println("");
 			}
 		}
