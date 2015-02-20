@@ -81,7 +81,7 @@ public class CombiGrid {
 		}
 	}
 	
-	public void setValues(gridFunction func) {
+	public void setValues(GridFunction func) {
 		double[] stepsize = new double[dimensions];
 		double[] x = new double[dimensions];
 		int[] levelSets = new int[dimensions];
