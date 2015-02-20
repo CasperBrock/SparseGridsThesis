@@ -8,7 +8,7 @@ public class ScalingTest {
 	public static void main(String[] args) {
 		//int[] levels = {10, 6, 4, 3, 2};
 		int[] levels = {5, 5, 5, 5, 5};
-		CombiGrid cg = new CombiGrid(5, levels);
+		CombiGrid cg = new CombiGrid(levels);
 		testAll();
 		//test(cg, 10);
 		//testThreads(cg, 10);
@@ -270,42 +270,42 @@ public class ScalingTest {
 	private static CombiGrid createGrid(int size) {		
 		if(size < 4) {
 			int[] levels = {size};
-			return new CombiGrid(1, levels);
+			return new CombiGrid(levels);
 		}
 		
 		else if(size == 4) {
 			int[] levels = {2, 2};
-			return new CombiGrid(2, levels);
+			return new CombiGrid(levels);
 		}
 		
 		else if(size == 5) {
 			int[] levels = {3, 2};
-			return new CombiGrid(2, levels);
+			return new CombiGrid(levels);
 		}
 		
 		else if(size == 6) {
 			int[] levels = {2, 2, 2};
-			return new CombiGrid(3, levels);
+			return new CombiGrid(levels);
 		}
 		
 		else if(size == 7) {
 			int[] levels = {3, 2, 2};
-			return new CombiGrid(3, levels);
+			return new CombiGrid(levels);
 		}
 		
 		else if(size == 8) {
 			int[] levels = {2, 2, 2, 2};
-			return new CombiGrid(4, levels);
+			return new CombiGrid(levels);
 		}
 		
 		else if(size == 9) {
 			int[] levels = {3, 2, 2, 2};
-			return new CombiGrid(4, levels);
+			return new CombiGrid(levels);
 		}
 		
 		else if(size == 10) {
 			int[] levels = {3, 3, 2, 2, 2};
-			return new CombiGrid(5, levels);
+			return new CombiGrid(levels);
 		}
 		
 		/*else if(size >= 19) {
@@ -318,7 +318,7 @@ public class ScalingTest {
 			int dim = size / 5;
 			int rem = size % 5;
 			int[] levels = {dim + rem, dim, dim, dim, dim};
-			return new CombiGrid(5, levels);
+			return new CombiGrid(levels);
 		}
 	}
 }

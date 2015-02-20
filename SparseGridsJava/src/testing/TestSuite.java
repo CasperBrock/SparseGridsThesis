@@ -72,7 +72,7 @@ public class TestSuite {
 						int[] levels = new int[i]; //array of levels, must be as long as the amount of dimensions.
 
 						Arrays.fill(levels, j); //lines that create the objects we are to work on. Should not be timed, ofc.
-						CG = new CombiGrid(i, levels);
+						CG = new CombiGrid(levels);
 						Arrays.fill(CG.grid, 1);					
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedThreads(k);
@@ -113,7 +113,7 @@ public class TestSuite {
 						int[] levels = new int[i]; //array of levels, must be as long as the amount of dimensions.
 
 						Arrays.fill(levels, j); //lines that create the objects we are to work on. Should not be timed, ofc.
-						CG = new CombiGrid(i, levels);
+						CG = new CombiGrid(levels);
 						Arrays.fill(CG.grid, 1);					
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedThreadsOnce(k);
@@ -144,7 +144,7 @@ public class TestSuite {
 						int[] levels = new int[i]; //array of levels, must be as long as the amount of dimensions.
 
 						Arrays.fill(levels, j); //lines that create the objects we are to work on. Should not be timed, ofc.
-						CG = new CombiGrid(i, levels);
+						CG = new CombiGrid(levels);
 						Arrays.fill(CG.grid, 1);					
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedParallelStream();
@@ -180,7 +180,7 @@ public class TestSuite {
 							int[] levels = new int[i]; //array of levels, must be as long as the amount of dimensions.
 
 							Arrays.fill(levels, j); //lines that create the objects we are to work on. Should not be timed, ofc.
-							CG = new CombiGrid(i, levels);
+							CG = new CombiGrid(levels);
 							Arrays.fill(CG.grid, 1);					
 							nanoStart = System.currentTimeMillis();
 							CG.hierarchizeUnoptimizedParallelStream(block);
@@ -219,7 +219,7 @@ public class TestSuite {
 						int[] levels = new int[i]; //array of levels, must be as long as the amount of dimensions.
 
 						Arrays.fill(levels, j); //lines that create the objects we are to work on. Should not be timed, ofc.
-						CG = new CombiGrid(i, levels);
+						CG = new CombiGrid(levels);
 						Arrays.fill(CG.grid, 1);					
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedTasks(k);
@@ -242,7 +242,7 @@ public class TestSuite {
 		System.out.println("Threads");
 		System.out.println("Threads\tmilliseconds");
 		for (k = 1; k<11;k++){//this loop iterates over number of threads.
-				CG = new CombiGrid(levels.length, levels);
+				CG = new CombiGrid(levels);
 				CG.setValues(GF);
 				
 				nanoStart = System.currentTimeMillis();
@@ -256,7 +256,7 @@ public class TestSuite {
 				System.out.println("ThreadsOnce");
 				System.out.println("threads\tmilliseconds");
 				for (k = 1; k<11;k++){//this loop iterates over number of threads.
-						CG = new CombiGrid(levels.length, levels);
+						CG = new CombiGrid(levels);
 						CG.setValues(GF);		
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedThreadsOnce(k);
@@ -271,7 +271,7 @@ public class TestSuite {
 				System.out.println("blocks\tmilliseconds");
 				for (k = 1; k<100;k++){//this loop iterates over number of blocks.
 
-					CG = new CombiGrid(levels.length, levels);
+					CG = new CombiGrid(levels);
 					CG.setValues(GF);				
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedParallelStream(k);;
@@ -284,7 +284,7 @@ public class TestSuite {
 				System.out.println("Tasks");
 				System.out.println("Tasks\tmilliseconds");
 				for (k = 1; k<100;k++){//this loop iterates over number of threads.
-						CG = new CombiGrid(levels.length, levels);
+						CG = new CombiGrid(levels);
 						CG.setValues(GF);		
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedTasks(k);
@@ -328,7 +328,7 @@ public class TestSuite {
 
 					//lines that create the objects we are to work on. Should not be timed, ofc.
 					Arrays.fill(levels, j);
-					CG = new CombiGrid(i, levels);
+					CG = new CombiGrid(levels);
 					Arrays.fill(CG.grid, 1);		
 					bestThreaded=Integer.MAX_VALUE; //for holding the best value, so we only compare the best results.
 
@@ -345,7 +345,7 @@ public class TestSuite {
 					
 					//THREADS ONCE
 					Arrays.fill(levels, j);
-					CG = new CombiGrid(i, levels);
+					CG = new CombiGrid(levels);
 					Arrays.fill(CG.grid, 1);		
 					bestThreadedONCE=Integer.MAX_VALUE; //for holding the best value, so we only compare the best results.
 
@@ -363,7 +363,7 @@ public class TestSuite {
 					
 					//Runs P-STREAM
 					for (int n=0; n<10; n++){
-						CG = new CombiGrid(i, levels); //get a new grid for comparison.
+						CG = new CombiGrid(levels); //get a new grid for comparison.
 						Arrays.fill(CG.grid, 1);
 
 						nanoStartStream = System.currentTimeMillis();
@@ -382,7 +382,7 @@ public class TestSuite {
 						timeStreamBlock=0;
 						for (int n=0; n<10; n++){
 
-							CG = new CombiGrid(i, levels); //get a new grid for comparison.
+							CG = new CombiGrid(levels); //get a new grid for comparison.
 							Arrays.fill(CG.grid, 1);
 
 							nanoStartStream = System.currentTimeMillis();
@@ -403,7 +403,7 @@ public class TestSuite {
 					
 					//Runs tasks
 					for (int m=1; m<10; m++){
-						CG = new CombiGrid(i, levels); //get a new grid for comparison.
+						CG = new CombiGrid(levels); //get a new grid for comparison.
 						Arrays.fill(CG.grid, 1);
 
 						nanoStartTask = System.currentTimeMillis();

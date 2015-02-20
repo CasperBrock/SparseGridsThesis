@@ -21,7 +21,7 @@ public class CombiGrid {
 
 	public static void main(String[] args) {
 		int[] levels = {3, 2, 3, 2, 3};
-		CombiGrid grid = new CombiGrid(5, levels);
+		CombiGrid grid = new CombiGrid(levels);
 		//int[] levels = {3, 3};
 		//CombiGrid grid = new CombiGrid(2, levels);
 		//Arrays.fill(grid.grid, 1.0);
@@ -36,8 +36,8 @@ public class CombiGrid {
 		grid.printValues();
 	}
 
-	public CombiGrid(int dimensions, int[] levels) {
-		this.dimensions = dimensions;
+	public CombiGrid(int[] levels) {
+		dimensions = levels.length;
 		pointsPerDimension = new int[dimensions];
 		this.levels = new int[dimensions];
 		int size = 1;
