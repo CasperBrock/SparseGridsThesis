@@ -33,6 +33,14 @@ public class GridFunction {
 		case PARABEL4D:
 			return 64 * 4 * x[0] * (1 - x[0]) * x[1] * (1 - x[1]) * x[2] * (1 - x[2]) * x[3] * (1 - x[3]);
 			
+		case PARABELANYD:
+					int dim = x.length;
+					double result=Math.pow(2, dim);
+					for (int i=0; i<dim;i++){
+						result=result*x[i]*(1-x[i]);
+					}
+					return result;
+		
 		default:
 			return 1;
 		}
