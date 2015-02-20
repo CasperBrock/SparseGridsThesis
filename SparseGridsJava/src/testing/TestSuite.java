@@ -1,5 +1,8 @@
 package testing;
 import grid.CombiGrid;
+import gridFunctions.GridFunction;
+import gridFunctions.GridFunctions;
+
 import java.util.Arrays;
 
 public class TestSuite {
@@ -49,8 +52,8 @@ public class TestSuite {
 		
 		//This test will compare the best results for each method, and only print those.
 		//testSideways();
-		int[] test = {6,6,6,6,6};
-		testAllSimple(test);
+		int[] test = {4,4,4,4,4};
+		testAllSimple(test, GridFunctions.ALLONES); //input an array of levels, and a GridFunctions to use.
 		
 	}
 	static void testFullThreads(boolean PrintAll){ //Will test with an different amounts of threads.
@@ -232,20 +235,16 @@ public class TestSuite {
 	}
 	
 	
-	static void testAllSimple(int[] levels){
+	static void testAllSimple(int[] levels, GridFunctions GF){
 		//System.out.println("Running test on grid with "+ levels.length " dimensions, and ");
 		//for (each  
 		//test threads basic
 		System.out.println("Threads");
 		System.out.println("Threads\tmilliseconds");
 		for (k = 1; k<11;k++){//this loop iterates over number of threads.
-			
-
-				//int[] levels = new int[dim]; //array of levels, must be as long as the amount of dimensions.
-
-				//Arrays.fill(levels, level); //lines that create the objects we are to work on. Should not be timed, ofc.
 				CG = new CombiGrid(levels.length, levels);
-				Arrays.fill(CG.grid, 1);					
+				CG.setValues(GF);
+				
 				nanoStart = System.currentTimeMillis();
 				CG.hierarchizeUnoptimizedThreads(k);
 				nanoStop = System.currentTimeMillis();
@@ -257,16 +256,10 @@ public class TestSuite {
 				System.out.println("ThreadsOnce");
 				System.out.println("threads\tmilliseconds");
 				for (k = 1; k<11;k++){//this loop iterates over number of threads.
-					
-
-						//int[] levels = new int[dim]; //array of levels, must be as long as the amount of dimensions.
-
-						//Arrays.fill(levels, level); //lines that create the objects we are to work on. Should not be timed, ofc.
 						CG = new CombiGrid(levels.length, levels);
-						Arrays.fill(CG.grid, 1);			
+						CG.setValues(GF);		
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedThreadsOnce(k);
-						//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
 						nanoStop = System.currentTimeMillis();
 
 						currentTime = nanoStop-nanoStart; 		
@@ -276,19 +269,13 @@ public class TestSuite {
 				
 				System.out.println("P-stream");
 				System.out.println("blocks\tmilliseconds");
-				for (k = 1; k<100;k++){//this loop iterates over number of threads.
-					
+				for (k = 1; k<100;k++){//this loop iterates over number of blocks.
 
-						//int[] levels = new int[dim]; //array of levels, must be as long as the amount of dimensions.
-
-						//Arrays.fill(levels, level); //lines that create the objects we are to work on. Should not be timed, ofc.
 					CG = new CombiGrid(levels.length, levels);
-						Arrays.fill(CG.grid, 1);					
+					CG.setValues(GF);				
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedParallelStream(k);;
-						//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
 						nanoStop = System.currentTimeMillis();
-
 						currentTime = nanoStop-nanoStart; 		
 						System.out.println(k+"\t"+currentTime);
 					}
@@ -297,23 +284,15 @@ public class TestSuite {
 				System.out.println("Tasks");
 				System.out.println("Tasks\tmilliseconds");
 				for (k = 1; k<100;k++){//this loop iterates over number of threads.
-					
-
-						//int[] levels = new int[dim]; //array of levels, must be as long as the amount of dimensions.
-
-						//Arrays.fill(levels, level); //lines that create the objects we are to work on. Should not be timed, ofc.
 						CG = new CombiGrid(levels.length, levels);
-						Arrays.fill(CG.grid, 1);					
+						CG.setValues(GF);		
 						nanoStart = System.currentTimeMillis();
 						CG.hierarchizeUnoptimizedTasks(k);
-						//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
 						nanoStop = System.currentTimeMillis();
-
 						currentTime = nanoStop-nanoStart; 		
 						System.out.println(k+"\t"+currentTime);
 					}
 				System.out.println("Successfully finished.");
-				
 			}
 
 	static void testSideways(){ //This method makes a big run, comparing the best result of each method, for each successive dim/lev.
