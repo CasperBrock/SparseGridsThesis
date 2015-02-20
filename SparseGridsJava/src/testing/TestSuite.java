@@ -1,6 +1,9 @@
+package testing;
+import grid.CombiGrid;
+
 import java.util.Arrays;
 
-public class testSuite {
+public class TestSuite {
 
 	/**
 	 * @param args

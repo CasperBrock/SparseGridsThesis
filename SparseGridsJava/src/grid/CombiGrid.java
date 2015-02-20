@@ -1,3 +1,6 @@
+package grid;
+import gridFunctions.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,11 +13,11 @@ import java.util.concurrent.Future;
 
 public class CombiGrid {
 
-	int[] levels;
-	int dimensions;
-	double[] grid;
-	int gridSize;
-	int[] pointsPerDimension;
+	public int[] levels;
+	public int dimensions;
+	public double[] grid;
+	public int gridSize;
+	public int[] pointsPerDimension;
 
 	public static void main(String[] args) {
 		int[] levels = {3, 2, 3, 2, 3};
@@ -22,7 +25,7 @@ public class CombiGrid {
 		//int[] levels = {3, 3};
 		//CombiGrid grid = new CombiGrid(2, levels);
 		//Arrays.fill(grid.grid, 1.0);
-		grid.setValues(new allOnes());
+		grid.setValues(new AllOnes());
 		//System.out.println("Array size is: " + grid.grid.length);
 		//grid.hierarchizeUnoptimized();
 		//grid.hierarchizeUnoptimizedThreads(8);
