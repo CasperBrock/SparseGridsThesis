@@ -1,6 +1,6 @@
 package testing;
 import grid.*;
-import gridFunctions.AllOnes;
+import gridFunctions.*;
 
 
 public class ScalingTest {
@@ -37,7 +37,7 @@ public class ScalingTest {
 			CombiGrid cg = createGrid(size);
 			totalTime = 0;
 			for(int i = 0; i < 10; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimized();
 				end = System.currentTimeMillis();
@@ -48,7 +48,7 @@ public class ScalingTest {
 			
 			totalTime = 0;
 			for(int i = 0; i < 10; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedThreads(3);
 				end = System.currentTimeMillis();
@@ -59,7 +59,7 @@ public class ScalingTest {
 			
 			totalTime = 0;
 			for(int i = 0; i < 10; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedThreadsOnce(4);
 				end = System.currentTimeMillis();
@@ -70,7 +70,7 @@ public class ScalingTest {
 			
 			totalTime = 0;
 			for(int i = 0; i < 10; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedTasks(22);
 				end = System.currentTimeMillis();
@@ -81,7 +81,7 @@ public class ScalingTest {
 			
 			totalTime = 0;
 			for(int i = 0; i < 10; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedParallelStream();
 				end = System.currentTimeMillis();
@@ -92,7 +92,7 @@ public class ScalingTest {
 			
 			totalTime = 0;
 			for(int i = 0; i < 10; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedParallelStream(80);
 				end = System.currentTimeMillis();
@@ -120,7 +120,7 @@ public class ScalingTest {
 			totalTime = 0;
 			//Run 10 times to average result
 			for(int i = 0; i < runs; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimized();
 				end = System.currentTimeMillis();
@@ -147,7 +147,7 @@ public class ScalingTest {
 			totalTime = 0;
 			//Run 10 times to average result
 			for(int i = 0; i < runs; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedThreads(threads);
 				end = System.currentTimeMillis();
@@ -174,7 +174,7 @@ public class ScalingTest {
 			totalTime = 0;
 			//Run 10 times to average result
 			for(int i = 0; i < runs; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedThreadsOnce(threads);
 				end = System.currentTimeMillis();
@@ -201,7 +201,7 @@ public class ScalingTest {
 			totalTime = 0;
 			//Run 10 times to average result
 			for(int i = 0; i < runs; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedTasks(tasks);
 				end = System.currentTimeMillis();
@@ -228,7 +228,7 @@ public class ScalingTest {
 			totalTime = 0;
 			//Run 10 times to average result
 			for(int i = 0; i < runs; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedParallelStream();
 				end = System.currentTimeMillis();
@@ -255,7 +255,7 @@ public class ScalingTest {
 			totalTime = 0;
 			//Run 10 times to average result
 			for(int i = 0; i < runs; i++) {
-				cg.setValues(new AllOnes());
+				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedParallelStream(blocks);
 				end = System.currentTimeMillis();

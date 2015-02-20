@@ -25,7 +25,7 @@ public class CombiGrid {
 		//int[] levels = {3, 3};
 		//CombiGrid grid = new CombiGrid(2, levels);
 		//Arrays.fill(grid.grid, 1.0);
-		grid.setValues(new AllOnes());
+		grid.setValues(GridFunctions.ALLONES);
 		//System.out.println("Array size is: " + grid.grid.length);
 		//grid.hierarchizeUnoptimized();
 		//grid.hierarchizeUnoptimizedThreads(8);
@@ -84,7 +84,7 @@ public class CombiGrid {
 		}
 	}
 	
-	public void setValues(GridFunction func) {
+	public void setValues(GridFunctions func) {
 		double[] stepsize = new double[dimensions];
 		double[] x = new double[dimensions];
 		int[] levelSets = new int[dimensions];
@@ -114,7 +114,7 @@ public class CombiGrid {
 				x[d] = dimensionCounter[d] * stepsize[d];
 			}
 			
-			grid[counter] = func.call(x);
+			grid[counter] = GridFunction.call(x, func);
 			dimensionCounter[0]++;
 		}
 		return ;
