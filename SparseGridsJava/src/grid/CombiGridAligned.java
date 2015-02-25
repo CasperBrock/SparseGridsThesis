@@ -22,6 +22,7 @@ public class CombiGridAligned {
 		grid.setValues(GridFunctions.ALLONES);
 		//grid.printValues();
 		grid.hierarchizeOptimized(4);
+		grid.printValues();
 	}
 
 	CombiGridAligned(int[] levels, int alignment) {
