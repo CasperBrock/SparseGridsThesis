@@ -20,7 +20,8 @@ public class CombiGridAligned {
 		System.out.println("Gridsize: " + grid.gridSize);
 		System.out.println("Arraysize: " + grid.arraySize);
 		grid.setValues(GridFunctions.ALLONES);
-		grid.printValues();
+		//grid.printValues();
+		grid.hierarchizeOptimized(4);
 	}
 
 	CombiGridAligned(int[] levels, int alignment) {
@@ -114,10 +115,15 @@ public class CombiGridAligned {
 				double parRight4_05 = grid[start + offset * stride + poleLoop
 						+ 3] * 0.5;
 
-				grid[start + offset * stride + poleLoop] = parRight1_05;
-				grid[start + offset * stride + poleLoop + 1] = parRight2_05;
-				grid[start + offset * stride + poleLoop + 2] = parRight3_05;
-				grid[start + offset * stride + poleLoop + 3] = parRight4_05;
+				double org1 = grid[start + offset * stride + poleLoop];
+				double org2 = grid[start + offset * stride + poleLoop+1];
+				double org3 = grid[start + offset * stride + poleLoop+2];
+				double org4 = grid[start + offset * stride + poleLoop+3];
+				
+				grid[start + offset * stride + poleLoop] = org1-parRight1_05;
+				grid[start + offset * stride + poleLoop + 1] = org2-parRight2_05;
+				grid[start + offset * stride + poleLoop + 2] = org3-parRight3_05;
+				grid[start + offset * stride + poleLoop + 3] = org4-parRight4_05;
 			} // end poleLoop
 			offset += stepsize;
 			for (ctr = 1; ctr < steps - 1; ctr++) {
@@ -154,13 +160,10 @@ public class CombiGridAligned {
 							- parLeft1_05 - parRight1_05;
 					grid[start + offset * stride + poleLoop + 1] = Org2
 							- parLeft2_05 - parRight2_05;
-					;
 					grid[start + offset * stride + poleLoop + 2] = Org3
 							- parLeft3_05 - parRight3_05;
-					;
 					grid[start + offset * stride + poleLoop + 3] = Org4
 							- parLeft4_05 - parRight4_05;
-					;
 				}
 				offset += stepsize;
 			}
@@ -173,11 +176,16 @@ public class CombiGridAligned {
 						- parOffsetStrided + poleLoop + 2] * 0.5;
 				double parLeft4_05 = grid[start + offset * stride
 						- parOffsetStrided + poleLoop + 3] * 0.5;
-
-				grid[start + offset * stride + poleLoop] = parLeft1_05;
-				grid[start + offset * stride + poleLoop + 1] = parLeft2_05;
-				grid[start + offset * stride + poleLoop + 2] = parLeft3_05;
-				grid[start + offset * stride + poleLoop + 3] = parLeft4_05;
+				
+				double org1 = grid[start + offset * stride + poleLoop];
+				double org2 = grid[start + offset * stride + poleLoop+1];
+				double org3 = grid[start + offset * stride + poleLoop+2];
+				double org4 = grid[start + offset * stride + poleLoop+3];
+				
+				grid[start + offset * stride + poleLoop] = org1-parLeft1_05;
+				grid[start + offset * stride + poleLoop + 1] = org2-parLeft2_05;
+				grid[start + offset * stride + poleLoop + 2] = org3-parLeft3_05;
+				grid[start + offset * stride + poleLoop + 3] = org4-parLeft4_05;
 			}
 			steps = steps >> 1;
 			offset = myPow2(levels[dim] - ll) - 1;
@@ -207,9 +215,10 @@ public class CombiGridAligned {
 					- parRight3_05;
 			grid[start + offset * stride + poleLoop + 3] = org4_R
 					- parRight4_05;
-
+			}
 			offset += stepsize;
-			for (poleLoop = 0; poleLoop < unroll; poleLoop += 4) { //c++ let's you redeclare int poleloop. We reuse the value instead, since the first loop is done.
+		
+			for (int poleLoop = 0; poleLoop < unroll; poleLoop += 4) { 
 				double parLeft1_05 = grid[start + (offset - parentOffset)
 						* stride + poleLoop] * 0.5;
 				double parLeft2_05 = grid[start + (offset - parentOffset)
@@ -233,7 +242,7 @@ public class CombiGridAligned {
 						- parLeft4_05;
 			} // end PoleLoop for level 2
 		}
-	}
+	
 	
 	public void hierarchize1DUnoptimized(int start, int stride, int size, int dimension) {
 		int level, steps, ctr, offset, parentOffset, stepSize, parOffsetStrided;
