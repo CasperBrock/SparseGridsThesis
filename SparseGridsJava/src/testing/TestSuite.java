@@ -54,7 +54,6 @@ public class TestSuite {
 		//testSideways();
 		int[] test = {4,4,4,4,4};
 		testAllSimple(test, GridFunctions.ALLONES); //input an array of levels, and a GridFunctions to use.
-		
 	}
 	static void testFullThreads(boolean PrintAll){ //Will test with an different amounts of threads.
 		System.out.println("dim\tlev\tthreads/tasks\ttime\ttype");

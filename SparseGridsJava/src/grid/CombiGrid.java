@@ -146,6 +146,9 @@ public class CombiGrid {
 			offset += stepSize;
 			left = 0.5 * grid[start + offset * stride - parOffsetStrided];
 			for (ctr = 1; ctr < steps - 1; ctr++) {
+				
+				
+				
 				val1 = grid[start + offset * stride];
 				right = 0.5 * grid[start + offset * stride + parOffsetStrided];
 				val2 = val1 - left;
