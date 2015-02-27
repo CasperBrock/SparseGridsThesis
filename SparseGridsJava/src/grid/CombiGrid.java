@@ -444,9 +444,9 @@ public class CombiGrid {
 	 * Then is uses the parallelStream() method to run the hierarchization in parallel.
 	 * All parallism is handled by the Java framework.
 	 *
-	 * @param numberOfBlocks The number of block objects to use
+	 * @param numberOfChunks The number of block objects to use
 	 */
-	public void hierarchizeUnoptimizedParallelStream(int numberOfBlocks) {
+	public void hierarchizeUnoptimizedParallelStream(int numberOfChunks) {
 		int dimension;
 		int stride = 1;
 		int pointsInDimension;
@@ -459,11 +459,11 @@ public class CombiGrid {
 		//dimension 1 separate as start of each pole is easier to calculate
 		pointsInDimension = pointsPerDimension[0];
 		numberOfPoles = gridSize / pointsInDimension;
-		polesPerBlock = numberOfPoles / numberOfBlocks;
+		polesPerBlock = numberOfPoles / numberOfChunks;
 
-		for(int i = 0; i < numberOfBlocks; i++) {
+		for(int i = 0; i < numberOfChunks; i++) {
 			int from = i * polesPerBlock;
-			int to = (i + 1 == numberOfBlocks) ? numberOfPoles : polesPerBlock * (i + 1);
+			int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerBlock * (i + 1);
 			blocks.add(new PoleBlock(this, 1, pointsInDimension, 0, pointsInDimension, from, to));
 		}
 
@@ -477,10 +477,10 @@ public class CombiGrid {
 			pointsInDimension = pointsPerDimension[dimension];
 			jump = stride * pointsInDimension;
 			numberOfPoles = gridSize / pointsInDimension;
-			polesPerBlock = numberOfPoles / numberOfBlocks;
-			for(int i = 0; i < numberOfBlocks; i++) {
+			polesPerBlock = numberOfPoles / numberOfChunks;
+			for(int i = 0; i < numberOfChunks; i++) {
 				int from = i * polesPerBlock;
-				int to = (i + 1 == numberOfBlocks) ? numberOfPoles : polesPerBlock * (i + 1);
+				int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerBlock * (i + 1);
 				blocks.add(new PoleBlock(this, stride, pointsInDimension, dimension, jump, from, to));
 			}
 
