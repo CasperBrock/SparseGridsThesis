@@ -37,7 +37,7 @@ public class CombiGridAligned {
 		System.out.println(grid2.compare(grid));
 	}
 
-	CombiGridAligned(int[] levels, int alignment) {
+	public CombiGridAligned(int[] levels, int alignment) {
 		// alignment in bytes
 		// alignment multiple of 32 bytes for AVX
 		// grid needs to be aligned for the blocked (optimized) version of the

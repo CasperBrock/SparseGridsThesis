@@ -9,7 +9,10 @@ public class ScalingTest {
 		//int[] levels = {10, 6, 4, 3, 2};
 		int[] levels = {5, 5, 5, 5, 5};
 		CombiGrid cg = new CombiGrid(levels);
-		testAll();
+		CombiGridAligned cga = new CombiGridAligned(levels, 32);
+		//testAll();
+		test(cg, 10);
+		testOptimized(cga, 10);
 		//test(cg, 10);
 		//testThreads(cg, 10);
 		//testThreadsOnce(cg, 10);
@@ -123,6 +126,33 @@ public class ScalingTest {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimized();
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / runs;
+			System.out.println("" + run + '\t' + avgTime);
+		}
+	}
+	
+	private static void testOptimized(CombiGridAligned cg, int runs) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeOptimized");
+		System.out.println("Run" + '\t' + "Time in ms");
+		
+		//Run 10 times
+		for(int run = 1; run <= 10; run++) {
+			totalTime = 0;
+			//Run 10 times to average result
+			for(int i = 0; i < runs; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimized(16);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
