@@ -20,12 +20,15 @@ public class CombiGrid {
 	public int[] pointsPerDimension;
 
 	public static void main(String[] args) {
-		int[] levels = {3, 2, 3, 2, 3};
+		int[] levels = {3, 3, 3, 3, 3};
 		CombiGrid grid = new CombiGrid(levels);
 		//int[] levels = {3, 3};
 		//CombiGrid grid = new CombiGrid(2, levels);
 		//Arrays.fill(grid.grid, 1.0);
-		grid.setValues(GridFunctions.ALLONES);
+		for(int i = 0; i < 10000; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeUnoptimized();
+		}
 		//System.out.println("Array size is: " + grid.grid.length);
 		//grid.hierarchizeUnoptimized();
 		//grid.hierarchizeUnoptimizedThreads(8);
@@ -33,7 +36,7 @@ public class CombiGrid {
 		//grid.hierarchizeUnoptimizedTasks(100);
 		//grid.hierarchizeUnoptimizedParallelStream();
 		//grid.hierarchizeUnoptimizedParallelStream(100);
-		grid.printValues();
+		//grid.printValues();
 	}
 
 	public CombiGrid(int[] levels) {

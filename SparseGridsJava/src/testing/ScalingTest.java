@@ -7,23 +7,24 @@ public class ScalingTest {
 	public static void main(String[] args) {
 		//int[] levels = {10, 6, 4, 3, 2};
 		int[] levels = {5, 5, 5, 5, 5};
-		CombiGrid cg = new CombiGrid(levels);
-		CombiGridAligned cga = new CombiGridAligned(levels, 32);
-		//testAll();
+		//CombiGrid cg = new CombiGrid(levels);
+		//CombiGridAligned cga = new CombiGridAligned(levels, 32);
+		testAllUnoptimized();
+		//testAllOptimized();
 		//test(cg, 10);
-		testOptimized(cga, 10);
+		//testOptimized(cga, 10);
 		//testThreads(cg, 10);
-		testOptimizedThreads(cga, 10);
+		//testOptimizedThreads(cga, 10);
 		//testThreadsOnce(cg, 10);
-		testOptimizedThreadsOnce(cga, 10);
+		//testOptimizedThreadsOnce(cga, 10);
 		//testTasks(cg, 10);
-		testOptimizedTasks(cga, 10);
+		//testOptimizedTasks(cga, 10);
 		//testParallelStream(cg, 10);
 		//testParallelStreamChunks(cg, 10);
-		testOptimizedParallelStreamChunks(cga, 10);
+		//testOptimizedParallelStreamChunks(cga, 10);
 	}
 	
-	private static void testAll() {
+	private static void testAllUnoptimized() {
 		long start;
 		long end;
 		double time;
@@ -35,8 +36,8 @@ public class ScalingTest {
 		double avgTimeParallelStream;
 		double avgTimeParallelStreamBlocks;
 		
-		System.out.println("Testing all");
-		System.out.println("Gridsize" + '\t' + "Sequentiel" + '\t' + "Threads" + '\t' + "ThreadsOnce" + '\t' + "Tasks" + '\t' + "ParallelStream" + '\t' + "ParallelStreamBlock");
+		System.out.println("Testing all Unoptimized");
+		System.out.println("Gridsize" + '\t' + "Sequentiel" + '\t' + "Threads" + '\t' + "ThreadsOnce" + '\t' + "Tasks" + '\t' + "ParallelStream" + '\t' + "ParallelStreamChunks");
 		
 		for(int size = 19; size <= 26; size++) {
 			CombiGrid cg = createGrid(size);
@@ -105,8 +106,84 @@ public class ScalingTest {
 				totalTime += time;
 			}
 			avgTimeParallelStreamBlocks = totalTime / 10;
-			
 			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks + '\t' + avgTimeParallelStream + '\t' + avgTimeParallelStreamBlocks);
+			cg = null;
+			System.gc();
+		}
+	}
+	
+	private static void testAllOptimized() {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double avgTimeThreads;
+		double avgTimeThreadsOnce;
+		double avgTimeTasks;
+		double avgTimeParallelStreamBlocks;
+		
+		System.out.println("Testing all Optimized");
+		System.out.println("Gridsize" + '\t' + "Sequentiel" + '\t' + "Threads" + '\t' + "ThreadsOnce" + '\t' + "Tasks" + '\t' + "ParallelStreamChunks");
+		
+		for(int size = 19; size <= 26; size++) {
+			CombiGridAligned cg = createAlignedGrid(size);
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimized(4);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / 10;
+			
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreads(4, 4);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeThreads = totalTime / 10;
+			
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreadsOnce(4, 4);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeThreadsOnce = totalTime / 10;
+			
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedTasks(4, 4);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeTasks = totalTime / 10;
+			
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedParallelStream(4, 4);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeParallelStreamBlocks = totalTime / 10;
+			
+			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks + '\t' + avgTimeParallelStreamBlocks);
 		}
 	}
 
@@ -361,7 +438,7 @@ public class ScalingTest {
 		double avgTime;
 
 		System.out.println("HierarchizeUnoptimizedParallelStreamChunks");
-		System.out.println("Blocks" + '\t' + "Time in ms");
+		System.out.println("Chunks" + '\t' + "Time in ms");
 		
 		//Run for 1-100 chunks
 		for(int chunks = 1; chunks <= 16; chunks++) {
@@ -388,7 +465,7 @@ public class ScalingTest {
 		double avgTime;
 
 		System.out.println("HierarchizeOptimizedParallelStreamChunks");
-		System.out.println("Blocks" + '\t' + "Time in ms");
+		System.out.println("Chunks" + '\t' + "Time in ms");
 		
 		//Run for 1-100 chunks
 		for(int chunks = 1; chunks <= 16; chunks++) {
@@ -459,6 +536,63 @@ public class ScalingTest {
 			int rem = size % 5;
 			int[] levels = {dim + rem, dim, dim, dim, dim};
 			return new CombiGrid(levels);
+		}
+	}
+	
+	private static CombiGridAligned createAlignedGrid(int size) {		
+		if(size < 4) {
+			int[] levels = {size};
+			return new CombiGridAligned(levels, 32);
+		}
+		
+		else if(size == 4) {
+			int[] levels = {2, 2};
+			return new CombiGridAligned(levels, 32);
+		}
+		
+		else if(size == 5) {
+			int[] levels = {3, 2};
+			return new CombiGridAligned(levels, 32);
+		}
+		
+		else if(size == 6) {
+			int[] levels = {2, 2, 2};
+			return new CombiGridAligned(levels, 32);
+		}
+		
+		else if(size == 7) {
+			int[] levels = {3, 2, 2};
+			return new CombiGridAligned(levels, 32);
+		}
+		
+		else if(size == 8) {
+			int[] levels = {2, 2, 2, 2};
+			return new CombiGridAligned(levels, 32);
+		}
+		
+		else if(size == 9) {
+			int[] levels = {3, 2, 2, 2};
+			return new CombiGridAligned(levels, 32);
+		}
+		
+		else if(size == 10) {
+			int[] levels = {3, 3, 2, 2, 2};
+			return new CombiGridAligned(levels, 32);
+		}
+		
+		/*else if(size >= 19) {
+			int f = size - 5 - 4 - 3 - 2;
+			int[] levels = {f, 6, 4, 3, 2};
+			return new CombiGrid(5, levels);
+		}*/
+		
+		else {
+			int dim = size / 5;
+			int rem = size % 5;
+			int[] levels = {dim + rem, dim, dim, dim, dim};
+			for(int i : levels)
+				System.out.print(i + " ");
+			return new CombiGridAligned(levels, 32);
 		}
 	}
 }

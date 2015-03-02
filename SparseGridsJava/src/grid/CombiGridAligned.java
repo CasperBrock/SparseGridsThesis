@@ -23,13 +23,15 @@ public class CombiGridAligned {
 	int arraySize;
 
 	public static void main(String[] args) {
-		int[] levels = {10, 5, 4, 3, 2};
+		int[] levels = {3, 3, 3, 3, 3};
 		CombiGridAligned grid = new CombiGridAligned(levels, 32);
 		CombiGridAligned grid2 = new CombiGridAligned(levels, 32);
 		System.out.println("Gridsize: " + grid.gridSize);
 		System.out.println("Arraysize: " + grid.arraySize);
-		grid.setValues(GridFunctions.ALLONES);
-		grid.hierarchizeOptimized(16);
+		for(int i = 0; i < 10000; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeOptimized(4);
+		}
 		//grid.printValues();
 		//grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimizedParallelStream(16, 1000);
