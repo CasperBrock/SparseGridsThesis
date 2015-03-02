@@ -84,6 +84,18 @@ public class CombiGrid {
 		}
 	}
 	
+	public boolean compare(CombiGrid cg) {
+		if (cg.gridSize != gridSize)
+			return false;
+		for(int i = 0; i < gridSize; i++)
+			if(Math.abs(cg.grid[i] - grid[i]) > 0.000001) {
+				System.out.println(cg.grid[i]);
+				System.out.println(grid[i]);
+				return false;
+			}
+		return true;
+	}
+	
 	public void setValues(GridFunctions func) {
 		double[] stepsize = new double[dimensions];
 		double[] x = new double[dimensions];

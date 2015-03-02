@@ -31,10 +31,10 @@ public class CombiGridAligned {
 		grid.setValues(GridFunctions.ALLONES);
 		grid.hierarchizeOptimized(16);
 		//grid.printValues();
-		grid2.setValues(GridFunctions.ALLONES);
-		grid2.hierarchizeOptimizedParallelStream(16, 1000);
+		//grid2.setValues(GridFunctions.ALLONES);
+		//grid2.hierarchizeOptimizedParallelStream(16, 1000);
 		//grid2.printValues();
-		System.out.println(grid2.compare(grid));
+		//System.out.println(grid2.compare(grid));
 	}
 
 	public CombiGridAligned(int[] levels, int alignment) {

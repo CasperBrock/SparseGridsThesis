@@ -2,7 +2,6 @@ package testing;
 import grid.*;
 import gridFunctions.*;
 
-
 public class ScalingTest {
 
 	public static void main(String[] args) {
@@ -11,14 +10,17 @@ public class ScalingTest {
 		CombiGrid cg = new CombiGrid(levels);
 		CombiGridAligned cga = new CombiGridAligned(levels, 32);
 		//testAll();
-		test(cg, 10);
-		testOptimized(cga, 10);
 		//test(cg, 10);
+		testOptimized(cga, 10);
 		//testThreads(cg, 10);
+		testOptimizedThreads(cga, 10);
 		//testThreadsOnce(cg, 10);
+		testOptimizedThreadsOnce(cga, 10);
 		//testTasks(cg, 10);
+		testOptimizedTasks(cga, 10);
 		//testParallelStream(cg, 10);
-		//testParallelStreamBlocks(cg, 10);
+		//testParallelStreamChunks(cg, 10);
+		testOptimizedParallelStreamChunks(cga, 10);
 	}
 	
 	private static void testAll() {
@@ -53,7 +55,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeUnoptimizedThreads(3);
+				cg.hierarchizeUnoptimizedThreads(4);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -75,7 +77,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeUnoptimizedTasks(22);
+				cg.hierarchizeUnoptimizedTasks(4);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -97,7 +99,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeUnoptimizedParallelStream(80);
+				cg.hierarchizeUnoptimizedParallelStream(4);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -108,7 +110,7 @@ public class ScalingTest {
 		}
 	}
 
-	private static void test(CombiGrid cg, int runs) {
+	private static void test(CombiGrid cg, int repititions) {
 		long start;
 		long end;
 		double time;
@@ -119,10 +121,10 @@ public class ScalingTest {
 		System.out.println("Run" + '\t' + "Time in ms");
 		
 		//Run 10 times
-		for(int run = 1; run <= 10; run++) {
+		for(int run = 1; run <= 16; run++) {
 			totalTime = 0;
 			//Run 10 times to average result
-			for(int i = 0; i < runs; i++) {
+			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimized();
@@ -130,12 +132,12 @@ public class ScalingTest {
 				time = end - start;
 				totalTime += time;
 			}
-			avgTime = totalTime / runs;
+			avgTime = totalTime / repititions;
 			System.out.println("" + run + '\t' + avgTime);
 		}
 	}
 	
-	private static void testOptimized(CombiGridAligned cg, int runs) {
+	private static void testOptimized(CombiGridAligned cg, int repititions) {
 		long start;
 		long end;
 		double time;
@@ -146,10 +148,10 @@ public class ScalingTest {
 		System.out.println("Run" + '\t' + "Time in ms");
 		
 		//Run 10 times
-		for(int run = 1; run <= 10; run++) {
+		for(int run = 1; run <= 16; run++) {
 			totalTime = 0;
 			//Run 10 times to average result
-			for(int i = 0; i < runs; i++) {
+			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeOptimized(16);
@@ -157,12 +159,12 @@ public class ScalingTest {
 				time = end - start;
 				totalTime += time;
 			}
-			avgTime = totalTime / runs;
+			avgTime = totalTime / repititions;
 			System.out.println("" + run + '\t' + avgTime);
 		}
 	}
 
-	private static void testThreads(CombiGrid cg, int runs) {
+	private static void testThreads(CombiGrid cg, int repititions) {
 		long start;
 		long end;
 		double time;
@@ -173,10 +175,10 @@ public class ScalingTest {
 		System.out.println("Threads" + '\t' + "Time in ms");
 		
 		//Run for 1-10 threads
-		for(int threads = 1; threads <= 10; threads++) {
+		for(int threads = 1; threads <= 16; threads++) {
 			totalTime = 0;
 			//Run 10 times to average result
-			for(int i = 0; i < runs; i++) {
+			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedThreads(threads);
@@ -184,12 +186,39 @@ public class ScalingTest {
 				time = end - start;
 				totalTime += time;
 			}
-			avgTime = totalTime / runs;
+			avgTime = totalTime / repititions;
+			System.out.println("" + threads + '\t' + avgTime);
+		}
+	}
+	
+	private static void testOptimizedThreads(CombiGridAligned cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeOptimizedThreads");
+		System.out.println("Threads" + '\t' + "Time in ms");
+		
+		//Run for 1-10 threads
+		for(int threads = 1; threads <= 16; threads++) {
+			totalTime = 0;
+			//Run 10 times to average result
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreads(16, threads);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
 			System.out.println("" + threads + '\t' + avgTime);
 		}
 	}
 
-	private static void testThreadsOnce(CombiGrid cg, int runs) {
+	private static void testThreadsOnce(CombiGrid cg, int repititions) {
 		long start;
 		long end;
 		double time;
@@ -200,10 +229,10 @@ public class ScalingTest {
 		System.out.println("Threads" + '\t' + "Time in ms");
 		
 		//Run for 1-10 threads
-		for(int threads = 1; threads <= 10; threads++) {
+		for(int threads = 1; threads <= 16; threads++) {
 			totalTime = 0;
 			//Run 10 times to average result
-			for(int i = 0; i < runs; i++) {
+			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedThreadsOnce(threads);
@@ -211,12 +240,39 @@ public class ScalingTest {
 				time = end - start;
 				totalTime += time;
 			}
-			avgTime = totalTime / runs;
+			avgTime = totalTime / repititions;
 			System.out.println("" + threads + '\t' + avgTime);
 		}
 	}
 	
-	private static void testTasks(CombiGrid cg, int runs) {
+	private static void testOptimizedThreadsOnce(CombiGridAligned cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeOptimizedThreadsOnce");
+		System.out.println("Threads" + '\t' + "Time in ms");
+		
+		//Run for 1-10 threads
+		for(int threads = 1; threads <= 16; threads++) {
+			totalTime = 0;
+			//Run 10 times to average result
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreadsOnce(16, threads);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + threads + '\t' + avgTime);
+		}
+	}
+	
+	private static void testTasks(CombiGrid cg, int repititions) {
 		long start;
 		long end;
 		double time;
@@ -227,10 +283,10 @@ public class ScalingTest {
 		System.out.println("Tasks" + '\t' + "Time in ms");
 		
 		//Run for 1-100 tasks
-		for(int tasks = 1; tasks <= 100; tasks++) {
+		for(int tasks = 1; tasks <= 16; tasks++) {
 			totalTime = 0;
 			//Run 10 times to average result
-			for(int i = 0; i < runs; i++) {
+			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedTasks(tasks);
@@ -238,12 +294,39 @@ public class ScalingTest {
 				time = end - start;
 				totalTime += time;
 			}
-			avgTime = totalTime / runs;
+			avgTime = totalTime / repititions;
 			System.out.println("" + tasks + '\t' + avgTime);
 		}
 	}
 	
-	private static void testParallelStream(CombiGrid cg, int runs) {
+	private static void testOptimizedTasks(CombiGridAligned cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeOptimizedTasks");
+		System.out.println("Tasks" + '\t' + "Time in ms");
+		
+		//Run for 1-100 tasks
+		for(int tasks = 1; tasks <= 16; tasks++) {
+			totalTime = 0;
+			//Run 10 times to average result
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedTasks(16, tasks);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + tasks + '\t' + avgTime);
+		}
+	}
+	
+	private static void testParallelStream(CombiGrid cg, int repititions) {
 		long start;
 		long end;
 		double time;
@@ -254,10 +337,10 @@ public class ScalingTest {
 		System.out.println("Run" + '\t' + "Time in ms");
 		
 		//Run 10 tests
-		for(int parallelStream = 1; parallelStream <= 10; parallelStream++) {
+		for(int parallelStream = 1; parallelStream <= 16; parallelStream++) {
 			totalTime = 0;
 			//Run 10 times to average result
-			for(int i = 0; i < runs; i++) {
+			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
 				cg.hierarchizeUnoptimizedParallelStream();
@@ -265,35 +348,62 @@ public class ScalingTest {
 				time = end - start;
 				totalTime += time;
 			}
-			avgTime = totalTime / runs;
+			avgTime = totalTime / repititions;
 			System.out.println("" + parallelStream + '\t' + avgTime);
 		}
 	}
 	
-	private static void testParallelStreamBlocks(CombiGrid cg, int runs) {
+	private static void testParallelStreamChunks(CombiGrid cg, int repititions) {
 		long start;
 		long end;
 		double time;
 		double totalTime;
 		double avgTime;
 
-		System.out.println("HierarchizeUnoptimizedParallelStreamBlocks");
+		System.out.println("HierarchizeUnoptimizedParallelStreamChunks");
 		System.out.println("Blocks" + '\t' + "Time in ms");
 		
-		//Run for 1-100 blocks
-		for(int blocks = 1; blocks <= 100; blocks++) {
+		//Run for 1-100 chunks
+		for(int chunks = 1; chunks <= 16; chunks++) {
 			totalTime = 0;
 			//Run 10 times to average result
-			for(int i = 0; i < runs; i++) {
+			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeUnoptimizedParallelStream(blocks);
+				cg.hierarchizeUnoptimizedParallelStream(chunks);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
 			}
-			avgTime = totalTime / runs;
-			System.out.println("" + blocks + '\t' + avgTime);
+			avgTime = totalTime / repititions;
+			System.out.println("" + chunks + '\t' + avgTime);
+		}
+	}
+	
+	private static void testOptimizedParallelStreamChunks(CombiGridAligned cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeOptimizedParallelStreamChunks");
+		System.out.println("Blocks" + '\t' + "Time in ms");
+		
+		//Run for 1-100 chunks
+		for(int chunks = 1; chunks <= 16; chunks++) {
+			totalTime = 0;
+			//Run 10 times to average result
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedParallelStream(16, chunks);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + chunks + '\t' + avgTime);
 		}
 	}
 	
