@@ -600,7 +600,7 @@ public class ScalingTest {
 		}
 	}
 	
-	public static void printInfo() {
+	private static void printInfo() {
 		RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
 		List<String> arguments = runtimeMxBean.getInputArguments();
 		System.out.printf("# OS: %s; %s; %s%n",
@@ -613,7 +613,7 @@ public class ScalingTest {
 		// This line works only on MS Windows:
 		System.out.printf("# CPU: %s%n", System.getenv("PROCESSOR_IDENTIFIER"));
 		System.out.println("# Available processors: " + Runtime.getRuntime().availableProcessors());
-		System.out.println("# Maximum memory: " + Runtime.getRuntime().maxMemory() / (1024 * 1024) + " MBs");
+		System.out.println("# Maximum memory: " + Runtime.getRuntime().maxMemory() / (1024 * 1024) + " MB");
 		java.util.Date now = new java.util.Date();
 		System.out.printf("# Date: %s%n",
 		new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ").format(now));
