@@ -490,111 +490,111 @@ public class CombiGridAligned {
 			try { t.join(); } catch (InterruptedException e) {}
 	}
 
-	public void hierarchizeOptimizedTasks(int blockSize, int numberOfTasks) {
-		int dimension;
-		int stride = 1;
-		int pointsInDimension;
-		int polesPerTask;
-		int numberOfPoles;
-		int numberOfBlocks;
-		int blocksPerTask;
-		ExecutorService executor = Executors.newWorkStealingPool();
-		List<Future<?>> futures = new ArrayList<Future<?>>();
+//	public void hierarchizeOptimizedTasks(int blockSize, int numberOfTasks) {
+//		int dimension;
+//		int stride = 1;
+//		int pointsInDimension;
+//		int polesPerTask;
+//		int numberOfPoles;
+//		int numberOfBlocks;
+//		int blocksPerTask;
+//		ExecutorService executor = Executors.newWorkStealingPool();
+//		List<Future<?>> futures = new ArrayList<Future<?>>();
+//
+//		//dimension 1 separate as start of each pole is easier to calculate
+//		pointsInDimension = noAligned;
+//		numberOfPoles = arraySize / pointsInDimension;
+//		polesPerTask = numberOfPoles / numberOfTasks;
+//		for(int i = 0; i < numberOfTasks; i++) {
+//			final int n = pointsInDimension;
+//			final int from = i * polesPerTask;
+//			final int to = (i + 1 == numberOfTasks) ? numberOfPoles : polesPerTask * (i + 1); 
+//			futures.add(executor.submit(new Runnable() { public void run() {
+//				for (int j = from; j < to; j++) {
+//					int start = j * n;
+//					hierarchize1DUnoptimized(start, 1, n, 0);
+//				}// end dimension 1
+//			}}));
+//		}
+//
+//		try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
+//		futures.clear();
+//
+//		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
+//			stride *= pointsInDimension;
+//			pointsInDimension = pointsPerDimension[dimension];
+//			final int jump = stride * pointsInDimension;
+//			numberOfPoles = arraySize / pointsInDimension;
+//			numberOfBlocks = numberOfPoles / blockSize;
+//			blocksPerTask = numberOfBlocks / numberOfTasks;
+//			//polesPerTask = numberOfPoles / numberOfTasks;
+//			for(int i = 0; i < numberOfTasks; i++) {
+//				final int s = stride;
+//				final int d = dimension;
+//				final int n = pointsInDimension;
+//				final int from = i * blocksPerTask;
+//				final int to = (i + 1 == numberOfTasks) ? numberOfBlocks : blocksPerTask * (i + 1);
+//				futures.add(executor.submit(new Runnable() { public void run() {
+//					for (int j = from; j < to; j++) { // integer operations form bottleneck here -- nested loops are twice as slow
+//						int k = j * blockSize;
+//						int div = k / s;
+//						int start = div * jump + (k % s);
+//						hierarchize1DOptimized(start, s, n, d, blockSize);
+//					}
+//				}}));
+//			} // end loop over dimension 2 to d
+//			try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
+//			futures.clear();
+//		}
+//	}
 
-		//dimension 1 separate as start of each pole is easier to calculate
-		pointsInDimension = noAligned;
-		numberOfPoles = arraySize / pointsInDimension;
-		polesPerTask = numberOfPoles / numberOfTasks;
-		for(int i = 0; i < numberOfTasks; i++) {
-			final int n = pointsInDimension;
-			final int from = i * polesPerTask;
-			final int to = (i + 1 == numberOfTasks) ? numberOfPoles : polesPerTask * (i + 1); 
-			futures.add(executor.submit(new Runnable() { public void run() {
-				for (int j = from; j < to; j++) {
-					int start = j * n;
-					hierarchize1DUnoptimized(start, 1, n, 0);
-				}// end dimension 1
-			}}));
-		}
-
-		try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
-		futures.clear();
-
-		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
-			stride *= pointsInDimension;
-			pointsInDimension = pointsPerDimension[dimension];
-			final int jump = stride * pointsInDimension;
-			numberOfPoles = arraySize / pointsInDimension;
-			numberOfBlocks = numberOfPoles / blockSize;
-			blocksPerTask = numberOfBlocks / numberOfTasks;
-			//polesPerTask = numberOfPoles / numberOfTasks;
-			for(int i = 0; i < numberOfTasks; i++) {
-				final int s = stride;
-				final int d = dimension;
-				final int n = pointsInDimension;
-				final int from = i * blocksPerTask;
-				final int to = (i + 1 == numberOfTasks) ? numberOfBlocks : blocksPerTask * (i + 1);
-				futures.add(executor.submit(new Runnable() { public void run() {
-					for (int j = from; j < to; j++) { // integer operations form bottleneck here -- nested loops are twice as slow
-						int k = j * blockSize;
-						int div = k / s;
-						int start = div * jump + (k % s);
-						hierarchize1DOptimized(start, s, n, d, blockSize);
-					}
-				}}));
-			} // end loop over dimension 2 to d
-			try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
-			futures.clear();
-		}
-	}
-
-	public void hierarchizeOptimizedParallelStream(int blockSize, int numberOfChunks) {
-		int dimension;
-		int stride = 1;
-		int pointsInDimension;
-		int numberOfPoles;
-		int jump;
-		int polesPerChunk;
-		int numberOfBlocks;
-		int blocksPerChunk;
-		List<PoleBlockAligned> blocks = new ArrayList<PoleBlockAligned>();
-
-
-		//dimension 1 separate as start of each pole is easier to calculate
-		pointsInDimension = noAligned;
-		numberOfPoles = arraySize / pointsInDimension;
-		polesPerChunk = numberOfPoles / numberOfChunks;
-
-		for(int i = 0; i < numberOfChunks; i++) {
-			int from = i * polesPerChunk;
-			int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerChunk * (i + 1);
-			blocks.add(new PoleBlockAligned(this, 1, pointsInDimension, 0, pointsInDimension, blockSize, from, to));
-		}
-
-		blocks
-		.parallelStream()
-		.forEach(block -> block.hierarchize());
-
-		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
-			blocks.clear();
-			stride *= pointsInDimension;
-			pointsInDimension = pointsPerDimension[dimension];
-			jump = stride * pointsInDimension;
-			numberOfPoles = arraySize / pointsInDimension;
-			numberOfBlocks = numberOfPoles / blockSize;
-			blocksPerChunk = numberOfBlocks / numberOfChunks;
-			for(int i = 0; i < numberOfChunks; i++) {
-				int from = i * blocksPerChunk;
-				int to = (i + 1 == numberOfChunks) ? numberOfBlocks : blocksPerChunk * (i + 1);
-				blocks.add(new PoleBlockAligned(this, stride, pointsInDimension, dimension, jump, blockSize, from, to));
-			}
-
-			blocks
-			.parallelStream()
-			.forEach(block -> block.hierarchize());
-		}
-		// end loop over dimension 2 to d
-	}
+//	public void hierarchizeOptimizedParallelStream(int blockSize, int numberOfChunks) {
+//		int dimension;
+//		int stride = 1;
+//		int pointsInDimension;
+//		int numberOfPoles;
+//		int jump;
+//		int polesPerChunk;
+//		int numberOfBlocks;
+//		int blocksPerChunk;
+//		List<PoleBlockAligned> blocks = new ArrayList<PoleBlockAligned>();
+//
+//
+//		//dimension 1 separate as start of each pole is easier to calculate
+//		pointsInDimension = noAligned;
+//		numberOfPoles = arraySize / pointsInDimension;
+//		polesPerChunk = numberOfPoles / numberOfChunks;
+//
+//		for(int i = 0; i < numberOfChunks; i++) {
+//			int from = i * polesPerChunk;
+//			int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerChunk * (i + 1);
+//			blocks.add(new PoleBlockAligned(this, 1, pointsInDimension, 0, pointsInDimension, blockSize, from, to));
+//		}
+//
+//		blocks
+//		.parallelStream()
+//		.forEach(block -> block.hierarchize());
+//
+//		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
+//			blocks.clear();
+//			stride *= pointsInDimension;
+//			pointsInDimension = pointsPerDimension[dimension];
+//			jump = stride * pointsInDimension;
+//			numberOfPoles = arraySize / pointsInDimension;
+//			numberOfBlocks = numberOfPoles / blockSize;
+//			blocksPerChunk = numberOfBlocks / numberOfChunks;
+//			for(int i = 0; i < numberOfChunks; i++) {
+//				int from = i * blocksPerChunk;
+//				int to = (i + 1 == numberOfChunks) ? numberOfBlocks : blocksPerChunk * (i + 1);
+//				blocks.add(new PoleBlockAligned(this, stride, pointsInDimension, dimension, jump, blockSize, from, to));
+//			}
+//
+//			blocks
+//			.parallelStream()
+//			.forEach(block -> block.hierarchize());
+//		}
+//		// end loop over dimension 2 to d
+//	}
 
 	private int myPow2(int i) {
 		return 1 << i;
