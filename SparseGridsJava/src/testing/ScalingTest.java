@@ -423,7 +423,7 @@ public class ScalingTest {
 //			totalTime = 0;
 //			//Run 10 times to average result
 //			for(int i = 0; i < repititions; i++) {
-//				cg.setValues(GridFunctions.ALLONES);
+//				cg.setValues(GridFunctions.ALLONE);
 //				start = System.currentTimeMillis();
 //				cg.hierarchizeUnoptimizedParallelStream();
 //				end = System.currentTimeMillis();

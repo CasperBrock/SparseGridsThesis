@@ -498,7 +498,8 @@ public class CombiGridAligned {
 		int numberOfPoles;
 		int numberOfBlocks;
 		int blocksPerTask;
-		ExecutorService executor = Executors.newWorkStealingPool();
+		ExecutorService executor = Executors.newFixedThreadPool(numberOfTasks);
+		//ExecutorService executor = Executors.newWorkStealingPool();
 		List<Future<?>> futures = new ArrayList<Future<?>>();
 
 		//dimension 1 separate as start of each pole is easier to calculate
