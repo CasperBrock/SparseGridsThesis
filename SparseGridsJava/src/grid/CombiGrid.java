@@ -362,7 +362,7 @@ public class CombiGrid {
 		int pointsInDimension;
 		int polesPerTask;
 		int numberOfPoles;
-		ExecutorService executor = Executors.newWorkStealingPool();
+		ExecutorService executor = Executors.newFixedThreadPool(numberOfTasks);
 		List<Future<?>> futures = new ArrayList<Future<?>>();
 
 		//dimension 1 separate as start of each pole is easier to calculate
