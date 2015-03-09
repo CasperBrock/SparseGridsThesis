@@ -78,16 +78,16 @@ public class ScalingTest {
 			}
 			avgTimeThreadsOnce = totalTime / 10;
 			
-			totalTime = 0;
-			for(int i = 0; i < 10; i++) {
-				cg.setValues(GridFunctions.ALLONES);
-				start = System.currentTimeMillis();
-				cg.hierarchizeUnoptimizedTasks(4);
-				end = System.currentTimeMillis();
-				time = end - start;
-				totalTime += time;
-			}
-			avgTimeTasks = totalTime / 10;
+//			totalTime = 0;
+//			for(int i = 0; i < 10; i++) {
+//				cg.setValues(GridFunctions.ALLONES);
+//				start = System.currentTimeMillis();
+//				cg.hierarchizeUnoptimizedTasks(4);
+//				end = System.currentTimeMillis();
+//				time = end - start;
+//				totalTime += time;
+//			}
+//			avgTimeTasks = totalTime / 10;
 			
 //			totalTime = 0;
 //			for(int i = 0; i < 10; i++) {
@@ -111,7 +111,7 @@ public class ScalingTest {
 //			}
 //			avgTimeParallelStreamBlocks = totalTime / 10;
 //			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks + '\t' + avgTimeParallelStream + '\t' + avgTimeParallelStreamBlocks);
-			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks);
+			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce);
 			cg = null;
 			System.gc();
 		}
@@ -354,32 +354,32 @@ public class ScalingTest {
 		}
 	}
 	
-	private static void testTasks(CombiGrid cg, int repititions) {
-		long start;
-		long end;
-		double time;
-		double totalTime;
-		double avgTime;
-
-		System.out.println("HierarchizeUnoptimizedTasks");
-		System.out.println("Tasks" + '\t' + "Time in ms");
-		
-		//Run for 1-100 tasks
-		for(int tasks = 1; tasks <= 16; tasks++) {
-			totalTime = 0;
-			//Run 10 times to average result
-			for(int i = 0; i < repititions; i++) {
-				cg.setValues(GridFunctions.ALLONES);
-				start = System.currentTimeMillis();
-				cg.hierarchizeUnoptimizedTasks(tasks);
-				end = System.currentTimeMillis();
-				time = end - start;
-				totalTime += time;
-			}
-			avgTime = totalTime / repititions;
-			System.out.println("" + tasks + '\t' + avgTime);
-		}
-	}
+//	private static void testTasks(CombiGrid cg, int repititions) {
+//		long start;
+//		long end;
+//		double time;
+//		double totalTime;
+//		double avgTime;
+//
+//		System.out.println("HierarchizeUnoptimizedTasks");
+//		System.out.println("Tasks" + '\t' + "Time in ms");
+//		
+//		//Run for 1-100 tasks
+//		for(int tasks = 1; tasks <= 16; tasks++) {
+//			totalTime = 0;
+//			//Run 10 times to average result
+//			for(int i = 0; i < repititions; i++) {
+//				cg.setValues(GridFunctions.ALLONES);
+//				start = System.currentTimeMillis();
+//				cg.hierarchizeUnoptimizedTasks(tasks);
+//				end = System.currentTimeMillis();
+//				time = end - start;
+//				totalTime += time;
+//			}
+//			avgTime = totalTime / repititions;
+//			System.out.println("" + tasks + '\t' + avgTime);
+//		}
+//	}
 	
 	private static void testOptimizedTasks(CombiGridAligned cg, int repititions) {
 		long start;
