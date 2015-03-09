@@ -356,58 +356,58 @@ public class CombiGrid {
 	 * 
 	 * @param numberOfTasks The number of tasks to use
 	 */
-//	public void hierarchizeUnoptimizedTasks(final int numberOfTasks) {
-//		int dimension;
-//		int stride = 1;
-//		int pointsInDimension;
-//		int polesPerTask;
-//		int numberOfPoles;
-//		ExecutorService executor = Executors.newWorkStealingPool();
-//		List<Future<?>> futures = new ArrayList<Future<?>>();
-//
-//		//dimension 1 separate as start of each pole is easier to calculate
-//		pointsInDimension = pointsPerDimension[0];
-//		numberOfPoles = gridSize / pointsInDimension;
-//		polesPerTask = numberOfPoles / numberOfTasks;
-//		for(int i = 0; i < numberOfTasks; i++) {
-//			final int n = pointsInDimension;
-//			final int from = i * polesPerTask;
-//			final int to = (i + 1 == numberOfTasks) ? numberOfPoles : polesPerTask * (i + 1); 
-//			futures.add(executor.submit(new Runnable() { public void run() {
-//				for (int j = from; j < to; j++) {
-//					int start = j * n;
-//					hierarchize1DUnoptimized(start, 1, n, 0);
-//				}// end dimension 1
-//			}}));
-//		}
-//
-//		try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
-//		futures.clear();
-//
-//		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
-//			stride *= pointsInDimension;
-//			pointsInDimension = pointsPerDimension[dimension];
-//			final int jump = stride * pointsInDimension;
-//			numberOfPoles = gridSize / pointsInDimension;
-//			polesPerTask = numberOfPoles / numberOfTasks;
-//			for(int i = 0; i < numberOfTasks; i++) {
-//				final int s = stride;
-//				final int d = dimension;
-//				final int n = pointsInDimension;
-//				final int from = i * polesPerTask;
-//				final int to = (i + 1 == numberOfTasks) ? numberOfPoles : polesPerTask * (i + 1);
-//				futures.add(executor.submit(new Runnable() { public void run() {
-//					for (int j = from; j < to; j++) { // integer operations form bottleneck here -- nested loops are twice as slow
-//						int div = j / s;
-//						int start = div * jump + (j % s);
-//						hierarchize1DUnoptimized(start, s, n, d);
-//					}
-//				}}));
-//			} // end loop over dimension 2 to d
-//			try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
-//			futures.clear();
-//		}
-//	}
+	public void hierarchizeUnoptimizedTasks(final int numberOfTasks) {
+		int dimension;
+		int stride = 1;
+		int pointsInDimension;
+		int polesPerTask;
+		int numberOfPoles;
+		ExecutorService executor = Executors.newWorkStealingPool();
+		List<Future<?>> futures = new ArrayList<Future<?>>();
+
+		//dimension 1 separate as start of each pole is easier to calculate
+		pointsInDimension = pointsPerDimension[0];
+		numberOfPoles = gridSize / pointsInDimension;
+		polesPerTask = numberOfPoles / numberOfTasks;
+		for(int i = 0; i < numberOfTasks; i++) {
+			final int n = pointsInDimension;
+			final int from = i * polesPerTask;
+			final int to = (i + 1 == numberOfTasks) ? numberOfPoles : polesPerTask * (i + 1); 
+			futures.add(executor.submit(new Runnable() { public void run() {
+				for (int j = from; j < to; j++) {
+					int start = j * n;
+					hierarchize1DUnoptimized(start, 1, n, 0);
+				}// end dimension 1
+			}}));
+		}
+
+		try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
+		futures.clear();
+
+		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
+			stride *= pointsInDimension;
+			pointsInDimension = pointsPerDimension[dimension];
+			final int jump = stride * pointsInDimension;
+			numberOfPoles = gridSize / pointsInDimension;
+			polesPerTask = numberOfPoles / numberOfTasks;
+			for(int i = 0; i < numberOfTasks; i++) {
+				final int s = stride;
+				final int d = dimension;
+				final int n = pointsInDimension;
+				final int from = i * polesPerTask;
+				final int to = (i + 1 == numberOfTasks) ? numberOfPoles : polesPerTask * (i + 1);
+				futures.add(executor.submit(new Runnable() { public void run() {
+					for (int j = from; j < to; j++) { // integer operations form bottleneck here -- nested loops are twice as slow
+						int div = j / s;
+						int start = div * jump + (j % s);
+						hierarchize1DUnoptimized(start, s, n, d);
+					}
+				}}));
+			} // end loop over dimension 2 to d
+			try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
+			futures.clear();
+		}
+	}
 
 	/***
 	 * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework.
