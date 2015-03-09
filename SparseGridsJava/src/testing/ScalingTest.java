@@ -2,6 +2,10 @@ package testing;
 import grid.*;
 import gridFunctions.*;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.List;
+
 public class ScalingTest {
 
 	public static void main(String[] args) {
@@ -9,7 +13,7 @@ public class ScalingTest {
 		int[] levels = {5, 5, 5, 5, 5};
 		//CombiGrid cg = new CombiGrid(levels);
 		//CombiGridAligned cga = new CombiGridAligned(levels, 32);
-		testAllUnoptimized();
+		//testAllUnoptimized();
 		//testAllOptimized();
 		//test(cg, 10);
 		//testOptimized(cga, 10);
@@ -594,5 +598,28 @@ public class ScalingTest {
 				System.out.print(i + " ");
 			return new CombiGridAligned(levels, 32);
 		}
+	}
+	
+	public static void printInfo() {
+		RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+		List<String> arguments = runtimeMxBean.getInputArguments();
+		System.out.printf("# OS: %s; %s; %s%n",
+		System.getProperty("os.name"),
+		System.getProperty("os.version"),
+		System.getProperty("os.arch"));
+		System.out.printf("# JVM: %s; %s%n",
+		System.getProperty("java.vendor"),
+		System.getProperty("java.version"));
+		// This line works only on MS Windows:
+		System.out.printf("# CPU: %s%n", System.getenv("PROCESSOR_IDENTIFIER"));
+		System.out.println("# Available processors: " + Runtime.getRuntime().availableProcessors());
+		System.out.println("# Maximum memory: " + Runtime.getRuntime().maxMemory() / (1024 * 1024) + " MBs");
+		java.util.Date now = new java.util.Date();
+		System.out.printf("# Date: %s%n",
+		new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ").format(now));
+		System.out.printf("# VM Arguments: ");
+		for(String s : arguments)
+			System.out.printf(s + " ");
+		System.out.println();
 	}
 }
