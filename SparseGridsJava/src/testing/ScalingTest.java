@@ -10,6 +10,7 @@ public class ScalingTest {
 
 	public static void main(String[] args) {
 		//int[] levels = {10, 6, 4, 3, 2};
+		printInfo();
 		int[] levels = {6, 6, 6, 6, 6};
 		CombiGrid cg = new CombiGrid(levels);
 		CombiGridAligned cga = new CombiGridAligned(levels, 32);
