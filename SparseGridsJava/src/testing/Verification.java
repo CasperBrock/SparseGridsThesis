@@ -25,7 +25,7 @@ public class Verification {
 		test1 = true;
 		for(int i = 1; i < 16; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			test.hierarchizeUnoptimizedParallelStream(i);
+			//test.hierarchizeUnoptimizedParallelStream(i);
 			test1 = test1 && real.compare(test);
 		}
 
@@ -36,7 +36,7 @@ public class Verification {
 		test2 = true;
 		for(int i = 1; i < 16; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			test.hierarchizeUnoptimizedParallelStream(i);
+			//test.hierarchizeUnoptimizedParallelStream(i);
 			test2 = test2 && real.compare(test);
 		}
 
@@ -47,7 +47,7 @@ public class Verification {
 		test3 = true;
 		for(int i = 1; i < 16; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			test.hierarchizeUnoptimizedParallelStream(i);
+			//test.hierarchizeUnoptimizedParallelStream(i);
 			test3 = test3 && real.compare(test);
 		}
 

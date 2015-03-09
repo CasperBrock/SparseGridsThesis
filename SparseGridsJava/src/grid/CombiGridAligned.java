@@ -367,7 +367,7 @@ public class CombiGridAligned {
 		}
 	}
 
-	public void hierarchizeOptimizedThreads(int blockSize, int numberOfThreads) {
+	public void hierarchizeOptimizedThreads(final int blockSize, int numberOfThreads) {
 		int dimension;
 		int stride = 1;
 		int pointsInDimension;
@@ -431,7 +431,7 @@ public class CombiGridAligned {
 		}
 	}
 
-	public void hierarchizeOptimizedThreadsOnce(int blockSize, int numberOfThreads) {
+	public void hierarchizeOptimizedThreadsOnce(final int blockSize, final int numberOfThreads) {
 		final CyclicBarrier barrier = new CyclicBarrier(numberOfThreads);
 		Thread[] threads = new Thread[numberOfThreads];
 
