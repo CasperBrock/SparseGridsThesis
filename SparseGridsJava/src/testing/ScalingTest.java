@@ -11,22 +11,45 @@ public class ScalingTest {
 	public static void main(String[] args) {
 		//int[] levels = {10, 6, 4, 3, 2};
 		printInfo();
-		int[] levels = {6, 6, 6, 6, 6};
-		CombiGrid cg = new CombiGrid(levels);
-		CombiGridAligned cga = new CombiGridAligned(levels, 32);
+		
+		
+		//int[] levels = {6, 6, 6, 6, 6};
+		//CombiGrid cg = new CombiGrid(levels);
+		//CombiGridAligned cga = new CombiGridAligned(levels, 32);
 		//testAllUnoptimized();
 		//testAllOptimized();
-		test(cg, 5);
-		testOptimized(cga, 5);
-		testThreads(cg, 5);
-		testOptimizedThreads(cga, 5);
-		testThreadsOnce(cg, 5);
-		testOptimizedThreadsOnce(cga, 5);
-		testTasks(cg, 5);
-		testOptimizedTasks(cga, 5);
-		//testParallelStream(cg, 10);
-		//testParallelStreamChunks(cg, 10);
-		//testOptimizedParallelStreamChunks(cga, 10);
+		
+		for (int i = 25; i <32 ; i++){
+			CombiGridAligned cga = createAlignedGrid(i);
+			System.out.println("-------------------------------------");
+			System.out.println("Now working on a grid of size " + i);
+			System.out.println("Level array: ");
+			int j =0;
+			while (j<cga.levels.length){
+				System.out.print(cga.levels[j] + " ");
+				j++;
+			}
+			System.out.println("-------------------------------------");
+			
+			
+			testOptimized(cga, 5);
+			testOptimizedThreads(cga, 5);
+			testOptimizedThreadsOnce(cga, 5);
+			testOptimizedTasks(cga, 5);
+			
+			cga=null;
+			CombiGrid cg = createGrid(i);
+
+			test(cg, 5);
+			testThreads(cg, 5);
+			testThreadsOnce(cg, 5);
+			testTasks(cg, 5);
+
+			cg=null;
+			//testParallelStream(cg, 10);
+			//testParallelStreamChunks(cg, 10);
+			//testOptimizedParallelStreamChunks(cga, 10);
+		}
 	}
 	
 	private static void testAllUnoptimized() {
