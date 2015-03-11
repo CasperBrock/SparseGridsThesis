@@ -600,6 +600,55 @@ public class CombiGridAligned {
 	private int myPow2(int i) {
 		return 1 << i;
 	}
+
+
+//METHODS RELATED TO RECURSION.
+
+	public void hierarchizeRecursive(){ //Overall recursive call
+		//TODO this method starts the recursion, using the hierarchizeRec-call.
+	}
+
+	public void hierarchizeRec(int s, int t, int center, int interval){
+		//TODO This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
+	
+	 Content ic = new Content();
+	 ic.asInt = interval;
+	 
+	// chosedim
+	int localSize = 0; // sum of levels
+	for (int i=1;i<dimensions;i++) {
+		if(ic.l[i]>0) {
+			localSize += ic.l[i];
+		}
+	}
+	if( localSize == 0 ) { // singleton cache line
+		if( ic.l[0] <= 0 ) { // real singleton
+			for(int i=s; i<t; i++) {
+				int rmask = myPow2(i); // was set to = (1 << i); 
+				int dist = myPow2(-ic.l[i]);
+				double lVal, rVal;
+				int posLeft, posRight;
+				if( (ic.l[6] & rmask)==1 ) { //Checks if the 
+//					posLeft = center - dist*strides[i];
+//					lVal = val[VAL_ACC(posLeft)];
+//					} else {
+//					posLeft = -1;
+//					lVal = 0.0;
+					}
+			}
+			}
+		}
+		
+				//TODO finish this. Mostly can be fairly simply ported from the c++.
+}
+
+	public void hierarchizeApplyStencil4v4(int pCenter, int offset, char left, char right, int r ){
+		//TODO This is the main worker class.
+	}
+
+	public void hierarchizeApplyStencil3v4(int pCenter, int offset, char left, char right, int r ){
+		//TODO Is this ever actually called from within the code?
+	}
 }
 
 class PoleBlockAligned {
