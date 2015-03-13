@@ -642,27 +642,28 @@ public class CombiGridAligned {
 		//TODO finish this. Mostly can be fairly simply ported from the c++.
 	}
 
-	public void hierarchizeApplyStencil4v4(int center, int offset, char left, char right, int r ) {
+	public void hierarchizeApplyStencil4v4(int center, int offset, boolean left, boolean right, int r ) {
 		double val1, val2, val3, val4, temp1 = 0.0, temp2 = 0.0, temp3 = 0.0, temp4 = 0.0,
 		right1 = 0.0, right2 = 0.0, right3 = 0.0, right4 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0, left4 = 0.0;
 		int pLeft = center - offset;
 		int pRight = center + offset;
 
-		if( left == '-' )  pLeft  = -9;
-		if( right == '-' ) pRight = -9;
+		if(!left)  pLeft  = -9;
+		if(!right) pRight = -9;
 
-		if( left != '-' ||  right != '-' ) {
+		if(left || right) {
 			val1 = grid[center];
 			val2 = grid[center + 1];
 			val3 = grid[center + 2];
 			val4 = grid[center + 3];
 			
-			if( left != '-' ) {
+			if(left) {
 				left1 = grid[pLeft];
 				left2 = grid[pLeft + 1];
 				left3 = grid[pLeft + 2];
 				left4 = grid[pLeft + 3];
-				if( right != '-' ) {
+				
+				if(right) {
 					left1 = left1 * 0.5;
 					left2 = left2 * 0.5;
 					left3 = left3 * 0.5;
@@ -677,13 +678,13 @@ public class CombiGridAligned {
 				}
 			}
 
-			if( right != '-' ) {
+			if(right) {
 				right1 = grid[pRight];
 				right2 = grid[pRight + 1];
 				right3 = grid[pRight + 2];
 				right4 = grid[pRight + 3];
 
-				if( left != '-' ) {
+				if(left) {
 					right1 = right1 * 0.5;
 					right2 = right2 * 0.5;
 					right3 = right3 * 0.5;
@@ -698,7 +699,7 @@ public class CombiGridAligned {
 				}
 			}
 
-			if( left != '-' &&  right != '-' ) {
+			if(left &&  right) {
 				temp1 = right1 + left1;
 				temp2 = right2 + left2;
 				temp3 = right3 + left3;
@@ -712,26 +713,27 @@ public class CombiGridAligned {
 		}
 	}
 
-	public void hierarchizeApplyStencil3v4(int center, int offset, char left, char right, int r ) {
+	public void hierarchizeApplyStencil3v4(int center, int offset, boolean left, boolean right, int r ) {
 		double val1, val2, val3, temp1 = 0.0, temp2 = 0.0, temp3 = 0.0,
 		right1 = 0.0, right2 = 0.0, right3 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0;
 		int pLeft = center - offset;
 		int pRight = center + offset;
 
-		if( left == '-' )  pLeft  = -9;
-		if( right == '-' ) pRight = -9;
+		//Unsure about this, if left == '-' pLeft is never used...
+		if(!left)  pLeft  = -9;
+		if(!right) pRight = -9;
 
-		if( left != '-' ||  right != '-' ) {
+		if(left || right) {
 			val1 = grid[center];
 			val2 = grid[center + 1];
 			val3 = grid[center + 2];
 			
-			if( left != '-' ) {
+			if(left) {
 				left1 = grid[pLeft];
 				left2 = grid[pLeft + 1];
 				left3 = grid[pLeft + 2];
 				
-				if( right != '-' ) {
+				if(right) {
 					left1 = left1 * 0.5;
 					left2 = left2 * 0.5;
 					left3 = left3 * 0.5;
@@ -744,12 +746,12 @@ public class CombiGridAligned {
 				}
 			}
 
-			if( right != '-' ) {
+			if(right) {
 				right1 = grid[pRight];
 				right2 = grid[pRight + 1];
 				right3 = grid[pRight + 2];
 
-				if( left != '-' ) {
+				if(left) {
 					right1 = right1 * 0.5;
 					right2 = right2 * 0.5;
 					right3 = right3 * 0.5;
@@ -762,7 +764,7 @@ public class CombiGridAligned {
 				}
 			}
 
-			if( left != '-' &&  right != '-' ) {
+			if(left &&  right) {
 				temp1 = right1 + left1;
 				temp2 = right2 + left2;
 				temp3 = right3 + left3;
