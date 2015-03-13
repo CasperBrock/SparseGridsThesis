@@ -29,7 +29,7 @@ public class ScalingTest {
 				System.out.print(cga.levels[j] + " ");
 				j++;
 			}
-			System.out.println("-------------------------------------");
+		System.out.println("-------------------------------------");
 			
 			
 			testOptimized(cga, 5);
