@@ -681,7 +681,7 @@ public class CombiGridAligned {
 	double stencil( double center, double left, double right) { return center - .5*left -.5* right;};
 	
 	public void hierarchizeRecursive(){ //Overall recursive call
-		//TODO this method starts the recursion, using the hierarchizeRec-call.
+		// this method starts the recursion, using the hierarchizeRec-call.
 
 		int centerInd[] = new int[dimensions];
 		Content fullInterval = new Content();
@@ -699,7 +699,7 @@ public class CombiGridAligned {
 	public void hierarchizeRec(int s, int t, int center, int interval){
 		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
 
-		//TODO This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
+		
 		Content ic = new Content();
 		ic.asInt = interval;
 
@@ -731,7 +731,7 @@ public class CombiGridAligned {
 						posRight = -1;
 						rVal = 0.0;
 					}
-					//grid[(center)] = stencil(grid[(center)],lVal,rVal); TODO Create class that does the same as stencil.
+					
 				}
 			} else {
 				if( s == 0 ) { // actually hierarchize in dir 0
