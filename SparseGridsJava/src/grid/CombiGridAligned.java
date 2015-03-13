@@ -21,6 +21,12 @@ public class CombiGridAligned {
 	public int alignment;
 	int noAligned;
 	int arraySize;
+	int[] strides; //used for the recursive code.
+	int recTile=9; //Some values are hard coded in the original.
+	double recTallPar=0.3;
+	float [] rf; 
+	int recMaxSpawn=16;
+	int recMinSpawn=17;
 
 	public static void main(String[] args) {
 		int[] levels = {3, 3, 3, 3, 3};
@@ -43,7 +49,7 @@ public class CombiGridAligned {
 		// alignment in bytes
 		// alignment multiple of 32 bytes for AVX
 		// grid needs to be aligned for the blocked (optimized) version of the
-		// code
+		// code= new float[dimensions];
 		dimensions = levels.length;
 		this.levels = new int[dimensions];
 		pointsPerDimension = new int[dimensions];
@@ -56,14 +62,23 @@ public class CombiGridAligned {
 				* alignment / 8.0);
 		gridSize = pointsPerDimension[0];
 		arraySize = noAligned;
+		strides = new int[dimensions+1];
 		for (i = 1; i < dimensions; i++) {
 			this.levels[i] = levels[i];
 			pointsPerDimension[i] = myPow2(levels[i]) - 1;
 			gridSize *= pointsPerDimension[i];
+			strides[i] = arraySize;
 			arraySize *= pointsPerDimension[i];
+			//TODO fill Strides[]. See line 454 and forward in c++ code.
 		}
-
+		strides[dimensions]=arraySize;
 		grid = new double[arraySize];
+		
+		
+		rf =  new float[dimensions];
+		for(int j=0;j<dimensions;j++) rf[j]=(float) 1.0;
+
+		
 	}
 
 	private void printValues2DArr(int size, int offset, int n0) {
@@ -596,51 +611,186 @@ public class CombiGridAligned {
 //		}
 //		// end loop over dimension 2 to d
 //	}
-
+	//Utility methods
 	private int myPow2(int i) {
 		return 1 << i;
 	}
+	
+	private int pos( int index[]){
+		int retPos = 0;
+		for(int i =0; i< dimensions; i++) {
+			assert( index[i] < pointsPerDimension[i] );
+			assert( 0 <= index[i] );
+			retPos += index[i]*strides[i];
+		}
+		return retPos;
+	};
 
 
 //METHODS RELATED TO RECURSION.
-
+	double stencil( double center, double left, double right) { return center - .5*left -.5* right;};
+	
 	public void hierarchizeRecursive(){ //Overall recursive call
 		//TODO this method starts the recursion, using the hierarchizeRec-call.
+
+		int centerInd[] = new int[dimensions];
+		Content fullInterval = new Content();
+		for( int i =0 ; i< dimensions; i++) {
+			fullInterval.l[i] = levels[i]-1; // boundary need not be split away
+			centerInd[i] = myPow2( levels[i]-1 ) -1;
+		}
+		fullInterval.l[6] = 0 ; // no predecessors to the left
+		fullInterval.l[7] = 0 ; // no predecessors to the right
+		int center = pos( centerInd );
+		hierarchizeRec(0, dimensions, center, fullInterval.asInt);
+
 	}
 
 	public void hierarchizeRec(int s, int t, int center, int interval){
-		//TODO This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
-	
-	 Content ic = new Content();
-	 ic.asInt = interval;
-	 
-	// chosedim
-	int localSize = 0; // sum of levels
-	for (int i=1;i<dimensions;i++) {
-		if(ic.l[i]>0) {
-			localSize += ic.l[i];
+		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
+
+		Content ic = new Content();
+		ic.asInt = interval;
+
+		// chosedim
+		int localSize = 0; // sum of levels
+		for (int i=1;i<dimensions;i++) {
+			if(ic.l[i]>0) {
+				localSize += ic.l[i];
+			}
 		}
-	}
-	if( localSize == 0 ) { // singleton cache line
-		if( ic.l[0] <= 0 ) { // real singleton
-			for(int i=s; i<t; i++) {
-				int rmask = myPow2(i); // was set to = (1 << i); 
-				int dist = myPow2(-ic.l[i]);
-				double lVal, rVal;
-				int posLeft, posRight;
-				if( (ic.l[6] & rmask)==1 ) { //Checks if the 
-//					posLeft = center - dist*strides[i];
-//					lVal = val[VAL_ACC(posLeft)];
-//					} else {
-//					posLeft = -1;
-//					lVal = 0.0;
+		if( localSize == 0 ) { // singleton cache line
+			if( ic.l[0] <= 0 ) { // real singleton
+				for(int i=s; i<t; i++) { 
+					int rmask = myPow2(i); // was set to = (1 << i); //TODO Reconsider possible errors here. We need a 8-bit bitarray, right?
+					int dist = myPow2(-ic.l[i]);
+					double lVal, rVal;
+					int posLeft, posRight;
+					if( (ic.l[6] & rmask)==1 ) { //Checks if the bitwise combination equals to 1.
+						posLeft = center - dist*strides[i];
+						lVal = grid[posLeft]; //TODO rewrite this for Java.
+					} else {
+						posLeft = -1;
+						lVal = 0.0;
 					}
+					if( (ic.l[7] & rmask)==1 ) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+						posRight = center + dist*strides[i];
+						rVal = grid[(posRight)];
+					} else {
+						posRight = -1;
+						rVal = 0.0;
+					}
+					//grid[(center)] = stencil(grid[(center)],lVal,rVal); TODO Create class that does the same as stencil.
+				}
+			} else {
+				if( s == 0 ) { // actually hierarchize in dir 0
+					int rmask = (1 << 0); // replace by iterative?
+					int dist = myPow2(ic.l[0]);
+					double leftBdVal, rightBdVal;
+					int leftBdPos, rightBdPos;
+					// hierarchize1DUnoptimized(CGIndex start, CGIndex stride, CGIndex size, int dim) does not fit because it never uses boundary
+					// if we don't split in dim0, we know we are at the boundary...
+					if( (ic.l[6] & rmask)==1 ) { //centerInd[i] - dist >= 0 ) { // it should be == -1, but hey
+						leftBdPos = center - dist;
+						leftBdVal = grid[(leftBdPos)];
+					} else {
+						leftBdPos = -1;
+						leftBdVal = 0.0;
+					}
+					if( (ic.l[7] & rmask)==1 ) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+						rightBdPos = center + dist;
+						rightBdVal = grid[(rightBdPos)];
+					} else {
+						rightBdPos = -1;
+						rightBdVal = 0.0;
+					}
+					int step = 1;
+					while( step < dist) {
+						int start = center - dist + step;
+
+						//grid[(start)] = stencil(grid[(start)],leftBdVal,grid[(start+step)]); //TODO also relies on stencil
+
+						start += 2*step;
+						while( start < center+dist-step ) {
+
+							grid[(start)] = stencil(grid[(start)],grid[(start-step)],grid[(start+step)]);
+							start += 2*step;
+						}
+						assert( start == center+dist-step );
+						grid[(start)] = stencil(grid[(start)],grid[(start-step)],rightBdVal);
+						step *= 2;
+					} // while of levels
+					grid[(center)] = stencil(grid[(center)],leftBdVal,rightBdVal);
+					s=1; // hierarchized in dim 0
+				}
+				int d0dist = myPow2(ic.l[0]);
+				int first = - d0dist +1;
+				int last = + d0dist -1;
+				for(int dim=s; dim<t; dim++) {
+					int rmask = (1 << dim); // replace by iterative?
+					int dist = myPow2(-ic.l[dim]);
+					assert(0== (center+first) %4 );
+					assert(2== (center+last) %4 );
+					if( (ic.l[6] & rmask)==1 && (ic.l[7] & rmask)==1 ) {
+						for(int i=first; i<= last-3; i+= 4) {
+							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
+						}
+						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,true,dim);
+						for(int i=last-2; i<= last; i++) {
+							//TODO nothing in here? Around line 2010 in c++ code.
+						}
+
+
+						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,false,dim);
+					}
+					if( (ic.l[6] & rmask)!=1 && (ic.l[7] & rmask)==1 ) {
+						for(int i=first; i<= last-3; i+= 4) {
+							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],false,true,dim);
+						}
+
+						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],false,true,dim);
+					} 
+				}
 			}
+		} else { 
+			int r=0;
+			//We added the cast to int in the following line.
+			{ int maxl=ic.l[0] - recTile - ((int) (recTallPar * localSize)); // block size of pseudo singletons, tall cache assumption. 
+			for(int i=1;i<dimensions;i++){
+				if( rf[i]*ic.l[i] > maxl ) {
+					r = i;
+					maxl = (int) (rf[i]*ic.l[i]);
+				}
+			}
+			}
+			Content midI = new Content();
+			Content leftI = new Content(); // ic used for right
+			midI.asInt = interval;
+			midI.l[r] = -midI.l[r];
+			ic.l[r]--;
+			int dist = myPow2(ic.l[r]); // already reduced!
+			leftI.asInt = ic.asInt;
+			int rmask = myPow2(r);
+			ic.l[6] |= rmask;
+			leftI.l[7] |= rmask;
+			dist *=strides[r]; // already reduced!
+			if( r < s) r=s; // avoid calls!
+			if( r > t) r=t;
+			if( (localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0) 
+					)
+			{ 
+				if( r>s ) hierarchizeRec(s, r, center, midI.asInt);
+				if(t>r) hierarchizeRec(r, t, center, midI.asInt);
+			} else {
+				if( r>s ) hierarchizeRec(s, r, center, midI.asInt);
+				hierarchizeRec(s, t, center - dist, leftI.asInt);
+				hierarchizeRec(s, t, center + dist, ic.asInt);
+				if(t>r) hierarchizeRec(r, t, center, midI.asInt);
 			}
 		}
-		
-				//TODO finish this. Mostly can be fairly simply ported from the c++.
-}
+	};
+
+
 
 	public void hierarchizeApplyStencil4v4(int pCenter, int offset, char left, char right, int r ){
 		//TODO This is the main worker class.
