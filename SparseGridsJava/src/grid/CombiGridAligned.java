@@ -549,60 +549,60 @@ public class CombiGridAligned {
 		}
 	}
 
-//	public void hierarchizeOptimizedParallelStream(int blockSize, int numberOfChunks) {
-//		int dimension;
-//		int stride = 1;
-//		int pointsInDimension;
-//		int numberOfPoles;
-//		int jump;
-//		int polesPerChunk;
-//		int numberOfBlocks;
-//		int blocksPerChunk;
-//		List<PoleBlockAligned> blocks = new ArrayList<PoleBlockAligned>();
-//
-//
-//		//dimension 1 separate as start of each pole is easier to calculate
-//		pointsInDimension = noAligned;
-//		numberOfPoles = arraySize / pointsInDimension;
-//		polesPerChunk = numberOfPoles / numberOfChunks;
-//
-//		for(int i = 0; i < numberOfChunks; i++) {
-//			int from = i * polesPerChunk;
-//			int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerChunk * (i + 1);
-//			blocks.add(new PoleBlockAligned(this, 1, pointsInDimension, 0, pointsInDimension, blockSize, from, to));
-//		}
-//
-//		blocks
-//		.parallelStream()
-//		.forEach(block -> block.hierarchize());
-//
-//		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
-//			blocks.clear();
-//			stride *= pointsInDimension;
-//			pointsInDimension = pointsPerDimension[dimension];
-//			jump = stride * pointsInDimension;
-//			numberOfPoles = arraySize / pointsInDimension;
-//			numberOfBlocks = numberOfPoles / blockSize;
-//			blocksPerChunk = numberOfBlocks / numberOfChunks;
-//			for(int i = 0; i < numberOfChunks; i++) {
-//				int from = i * blocksPerChunk;
-//				int to = (i + 1 == numberOfChunks) ? numberOfBlocks : blocksPerChunk * (i + 1);
-//				blocks.add(new PoleBlockAligned(this, stride, pointsInDimension, dimension, jump, blockSize, from, to));
-//			}
-//
-//			blocks
-//			.parallelStream()
-//			.forEach(block -> block.hierarchize());
-//		}
-//		// end loop over dimension 2 to d
-//	}
+	//	public void hierarchizeOptimizedParallelStream(int blockSize, int numberOfChunks) {
+	//		int dimension;
+	//		int stride = 1;
+	//		int pointsInDimension;
+	//		int numberOfPoles;
+	//		int jump;
+	//		int polesPerChunk;
+	//		int numberOfBlocks;
+	//		int blocksPerChunk;
+	//		List<PoleBlockAligned> blocks = new ArrayList<PoleBlockAligned>();
+	//
+	//
+	//		//dimension 1 separate as start of each pole is easier to calculate
+	//		pointsInDimension = noAligned;
+	//		numberOfPoles = arraySize / pointsInDimension;
+	//		polesPerChunk = numberOfPoles / numberOfChunks;
+	//
+	//		for(int i = 0; i < numberOfChunks; i++) {
+	//			int from = i * polesPerChunk;
+	//			int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerChunk * (i + 1);
+	//			blocks.add(new PoleBlockAligned(this, 1, pointsInDimension, 0, pointsInDimension, blockSize, from, to));
+	//		}
+	//
+	//		blocks
+	//		.parallelStream()
+	//		.forEach(block -> block.hierarchize());
+	//
+	//		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
+	//			blocks.clear();
+	//			stride *= pointsInDimension;
+	//			pointsInDimension = pointsPerDimension[dimension];
+	//			jump = stride * pointsInDimension;
+	//			numberOfPoles = arraySize / pointsInDimension;
+	//			numberOfBlocks = numberOfPoles / blockSize;
+	//			blocksPerChunk = numberOfBlocks / numberOfChunks;
+	//			for(int i = 0; i < numberOfChunks; i++) {
+	//				int from = i * blocksPerChunk;
+	//				int to = (i + 1 == numberOfChunks) ? numberOfBlocks : blocksPerChunk * (i + 1);
+	//				blocks.add(new PoleBlockAligned(this, stride, pointsInDimension, dimension, jump, blockSize, from, to));
+	//			}
+	//
+	//			blocks
+	//			.parallelStream()
+	//			.forEach(block -> block.hierarchize());
+	//		}
+	//		// end loop over dimension 2 to d
+	//	}
 
 	private int myPow2(int i) {
 		return 1 << i;
 	}
 
 
-//METHODS RELATED TO RECURSION.
+	//METHODS RELATED TO RECURSION.
 
 	public void hierarchizeRecursive(){ //Overall recursive call
 		//TODO this method starts the recursion, using the hierarchizeRec-call.
@@ -610,44 +610,168 @@ public class CombiGridAligned {
 
 	public void hierarchizeRec(int s, int t, int center, int interval){
 		//TODO This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
-	
-	 Content ic = new Content();
-	 ic.asInt = interval;
-	 
-	// chosedim
-	int localSize = 0; // sum of levels
-	for (int i=1;i<dimensions;i++) {
-		if(ic.l[i]>0) {
-			localSize += ic.l[i];
+
+		Content ic = new Content();
+		ic.asInt = interval;
+
+		// chosedim
+		int localSize = 0; // sum of levels
+		for (int i=1;i<dimensions;i++) {
+			if(ic.l[i]>0) {
+				localSize += ic.l[i];
+			}
 		}
-	}
-	if( localSize == 0 ) { // singleton cache line
-		if( ic.l[0] <= 0 ) { // real singleton
-			for(int i=s; i<t; i++) {
-				int rmask = myPow2(i); // was set to = (1 << i); 
-				int dist = myPow2(-ic.l[i]);
-				double lVal, rVal;
-				int posLeft, posRight;
-				if( (ic.l[6] & rmask)==1 ) { //Checks if the 
-//					posLeft = center - dist*strides[i];
-//					lVal = val[VAL_ACC(posLeft)];
-//					} else {
-//					posLeft = -1;
-//					lVal = 0.0;
+		if( localSize == 0 ) { // singleton cache line
+			if( ic.l[0] <= 0 ) { // real singleton
+				for(int i=s; i<t; i++) {
+					int rmask = myPow2(i); // was set to = (1 << i); 
+					int dist = myPow2(-ic.l[i]);
+					double lVal, rVal;
+					int posLeft, posRight;
+					if( (ic.l[6] & rmask)==1 ) { //Checks if the 
+						//					posLeft = center - dist*strides[i];
+						//					lVal = val[VAL_ACC(posLeft)];
+						//					} else {
+						//					posLeft = -1;
+						//					lVal = 0.0;
 					}
-			}
+				}
 			}
 		}
-		
-				//TODO finish this. Mostly can be fairly simply ported from the c++.
-}
 
-	public void hierarchizeApplyStencil4v4(int pCenter, int offset, char left, char right, int r ){
-		//TODO This is the main worker class.
+		//TODO finish this. Mostly can be fairly simply ported from the c++.
 	}
 
-	public void hierarchizeApplyStencil3v4(int pCenter, int offset, char left, char right, int r ){
-		//TODO Is this ever actually called from within the code?
+	public void hierarchizeApplyStencil4v4(int center, int offset, char left, char right, int r ) {
+		double val1, val2, val3, val4, temp1 = 0.0, temp2 = 0.0, temp3 = 0.0, temp4 = 0.0,
+		right1 = 0.0, right2 = 0.0, right3 = 0.0, right4 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0, left4 = 0.0;
+		int pLeft = center - offset;
+		int pRight = center + offset;
+
+		if( left == '-' )  pLeft  = -9;
+		if( right == '-' ) pRight = -9;
+
+		if( left != '-' ||  right != '-' ) {
+			val1 = grid[center];
+			val2 = grid[center + 1];
+			val3 = grid[center + 2];
+			val4 = grid[center + 3];
+			
+			if( left != '-' ) {
+				left1 = grid[pLeft];
+				left2 = grid[pLeft + 1];
+				left3 = grid[pLeft + 2];
+				left4 = grid[pLeft + 3];
+				if( right != '-' ) {
+					left1 = left1 * 0.5;
+					left2 = left2 * 0.5;
+					left3 = left3 * 0.5;
+					left4 = left4 * 0.5;
+				}
+				
+				else {
+					temp1 = left1 * 0.5;
+					temp2 = left2 * 0.5;
+					temp3 = left3 * 0.5;
+					temp4 = left4 * 0.5;
+				}
+			}
+
+			if( right != '-' ) {
+				right1 = grid[pRight];
+				right2 = grid[pRight + 1];
+				right3 = grid[pRight + 2];
+				right4 = grid[pRight + 3];
+
+				if( left != '-' ) {
+					right1 = right1 * 0.5;
+					right2 = right2 * 0.5;
+					right3 = right3 * 0.5;
+					right4 = right4 * 0.5;
+				}
+				
+				else {
+					temp1 = right1 * 0.5;
+					temp2 = right2 * 0.5;
+					temp3 = right3 * 0.5;
+					temp4 = right4 * 0.5;
+				}
+			}
+
+			if( left != '-' &&  right != '-' ) {
+				temp1 = right1 + left1;
+				temp2 = right2 + left2;
+				temp3 = right3 + left3;
+				temp4 = right4 + left4;
+			}
+
+			grid[center] = val1 - temp1;
+			grid[center + 1] = val2 - temp2;
+			grid[center + 2] = val3 - temp3;
+			grid[center + 3] = val4 - temp4;
+		}
+	}
+
+	public void hierarchizeApplyStencil3v4(int center, int offset, char left, char right, int r ) {
+		double val1, val2, val3, temp1 = 0.0, temp2 = 0.0, temp3 = 0.0,
+		right1 = 0.0, right2 = 0.0, right3 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0;
+		int pLeft = center - offset;
+		int pRight = center + offset;
+
+		if( left == '-' )  pLeft  = -9;
+		if( right == '-' ) pRight = -9;
+
+		if( left != '-' ||  right != '-' ) {
+			val1 = grid[center];
+			val2 = grid[center + 1];
+			val3 = grid[center + 2];
+			
+			if( left != '-' ) {
+				left1 = grid[pLeft];
+				left2 = grid[pLeft + 1];
+				left3 = grid[pLeft + 2];
+				
+				if( right != '-' ) {
+					left1 = left1 * 0.5;
+					left2 = left2 * 0.5;
+					left3 = left3 * 0.5;
+				}
+				
+				else {
+					temp1 = left1 * 0.5;
+					temp2 = left2 * 0.5;
+					temp3 = left3 * 0.5;
+				}
+			}
+
+			if( right != '-' ) {
+				right1 = grid[pRight];
+				right2 = grid[pRight + 1];
+				right3 = grid[pRight + 2];
+
+				if( left != '-' ) {
+					right1 = right1 * 0.5;
+					right2 = right2 * 0.5;
+					right3 = right3 * 0.5;
+				}
+				
+				else {
+					temp1 = right1 * 0.5;
+					temp2 = right2 * 0.5;
+					temp3 = right3 * 0.5;
+				}
+			}
+
+			if( left != '-' &&  right != '-' ) {
+				temp1 = right1 + left1;
+				temp2 = right2 + left2;
+				temp3 = right3 + left3;
+			}
+
+			grid[center] = val1 - temp1;
+			grid[center + 1] = val2 - temp2;
+			grid[center + 2] = val3 - temp3;
+		}
 	}
 }
 
