@@ -29,15 +29,21 @@ public class CombiGridAligned {
 	int recMinSpawn=17;
 
 	public static void main(String[] args) {
-		int[] levels = {3, 3, 3, 3, 3};
+		int[] levels = {4, 4, 4, 4, 4};
 		CombiGridAligned grid = new CombiGridAligned(levels, 32);
 		CombiGridAligned grid2 = new CombiGridAligned(levels, 32);
 		System.out.println("Gridsize: " + grid.gridSize);
 		System.out.println("Arraysize: " + grid.arraySize);
 		for(int i = 0; i < 10000; i++) {
-			grid.setValues(GridFunctions.ALLONES);
-			grid.hierarchizeOptimized(4);
+			//grid.setValues(GridFunctions.ALLONES);
+			//grid.hierarchizeOptimized(4);
 		}
+		grid2.hierarchizeOptimized(4);
+		grid.setValues(GridFunctions.ALLONES);
+		grid.hierarchizeRecursive();
+		if (grid.compare(grid2)){
+			System.out.println("The grids are equal.");
+		} else System.out.println("not equal grids. check code.");
 		//grid.printValues();
 		//grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimizedParallelStream(16, 1000);
@@ -719,7 +725,7 @@ public class CombiGridAligned {
 					int posLeft, posRight;
 					if( (ic.l[6] & rmask)==1 ) { //Checks if the bitwise combination equals to 1.
 						posLeft = center - dist*strides[i];
-						lVal = grid[posLeft]; //TODO rewrite this for Java.
+						lVal = grid[posLeft];
 					} else {
 						posLeft = -1;
 						lVal = 0.0;
@@ -731,6 +737,7 @@ public class CombiGridAligned {
 						posRight = -1;
 						rVal = 0.0;
 					}
+					 grid[(center)] = stencil(grid[(center)],lVal,rVal);
 					
 				}
 			} else {
@@ -759,7 +766,7 @@ public class CombiGridAligned {
 					while( step < dist) {
 						int start = center - dist + step;
 
-						//grid[(start)] = stencil(grid[(start)],leftBdVal,grid[(start+step)]); //TODO also relies on stencil
+						grid[(start)] = stencil(grid[(start)],leftBdVal,grid[(start+step)]);
 
 						start += 2*step;
 						while( start < center+dist-step ) {
@@ -784,14 +791,16 @@ public class CombiGridAligned {
 					assert(2== (center+last) %4 );
 					if( (ic.l[6] & rmask)==1 && (ic.l[7] & rmask)==1 ) {
 						for(int i=first; i<= last-3; i+= 4) {
+							System.out.println("the bitshift now works.");
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
 						}
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,true,dim);
-						for(int i=last-2; i<= last; i++) {
-							//TODO nothing in here? Around line 2010 in c++ code.
+					}
+					
+					if( (ic.l[6] & rmask)==1 && (ic.l[7] & rmask)!=1 ) {
+						for(int i=first; i<= last-3; i+= 4) {
+							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,false,dim);
 						}
-
-
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,false,dim);
 					}
 					if( (ic.l[6] & rmask)!=1 && (ic.l[7] & rmask)==1 ) {
@@ -806,13 +815,12 @@ public class CombiGridAligned {
 		} else { 
 			int r=0;
 			//We added the cast to int in the following line.
-			{ int maxl=ic.l[0] - recTile - ((int) (recTallPar * localSize)); // block size of pseudo singletons, tall cache assumption. 
+			int maxl=ic.l[0] - recTile - ((int) (recTallPar * localSize)); // block size of pseudo singletons, tall cache assumption. 
 			for(int i=1;i<dimensions;i++){
 				if( rf[i]*ic.l[i] > maxl ) {
 					r = i;
 					maxl = (int) (rf[i]*ic.l[i]);
 				}
-			}
 			}
 			Content midI = new Content();
 			Content leftI = new Content(); // ic used for right
@@ -837,10 +845,9 @@ public class CombiGridAligned {
 				hierarchizeRec(s, t, center - dist, leftI.asInt);
 				hierarchizeRec(s, t, center + dist, ic.asInt);
 				if(t>r) hierarchizeRec(r, t, center, midI.asInt);
-				}
 			}
-		
-	;
+		};
+		System.out.println("1rec");
 	}
 
 	public void hierarchizeApplyStencil4v4(int center, int offset, boolean left, boolean right, int r ) {
