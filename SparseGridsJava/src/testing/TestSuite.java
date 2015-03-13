@@ -146,7 +146,7 @@ public class TestSuite {
 						CG = new CombiGrid(levels);
 						Arrays.fill(CG.grid, 1);					
 						nanoStart = System.currentTimeMillis();
-						CG.hierarchizeUnoptimizedParallelStream();
+						//CG.hierarchizeUnoptimizedParallelStream();
 						//	CG.printValnew int[10,5,4,3,2]ues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
 						nanoStop = System.currentTimeMillis();
 
@@ -182,7 +182,7 @@ public class TestSuite {
 							CG = new CombiGrid(levels);
 							Arrays.fill(CG.grid, 1);					
 							nanoStart = System.currentTimeMillis();
-							CG.hierarchizeUnoptimizedParallelStream(block);
+							//CG.hierarchizeUnoptimizedParallelStream(block);
 							//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
 							nanoStop = System.currentTimeMillis();
 
@@ -273,7 +273,7 @@ public class TestSuite {
 					CG = new CombiGrid(levels);
 					CG.setValues(GF);				
 						nanoStart = System.currentTimeMillis();
-						CG.hierarchizeUnoptimizedParallelStream(k);;
+						//CG.hierarchizeUnoptimizedParallelStream(k);;
 						nanoStop = System.currentTimeMillis();
 						currentTime = nanoStop-nanoStart; 		
 						System.out.println(k+"\t"+currentTime);
@@ -366,7 +366,7 @@ public class TestSuite {
 						Arrays.fill(CG.grid, 1);
 
 						nanoStartStream = System.currentTimeMillis();
-						CG.hierarchizeUnoptimizedParallelStream();
+						//CG.hierarchizeUnoptimizedParallelStream();
 						//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
 						nanoStopStream = System.currentTimeMillis();
 
@@ -385,7 +385,7 @@ public class TestSuite {
 							Arrays.fill(CG.grid, 1);
 
 							nanoStartStream = System.currentTimeMillis();
-							CG.hierarchizeUnoptimizedParallelStream(blocks);
+							//CG.hierarchizeUnoptimizedParallelStream(blocks);
 							//	CG.printValues(); //print only to check that everything is being calculated correctly. Takes a lot of extra time.
 							nanoStopStream = System.currentTimeMillis();
 
