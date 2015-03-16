@@ -29,22 +29,23 @@ public class CombiGridAligned {
 	int recMinSpawn=17;
 
 	public static void main(String[] args) {
-		int[] levels = {3, 3, 3, 3, 3};
+		int[] levels = {2, 2};
 		CombiGridAligned grid = new CombiGridAligned(levels, 32);
 		CombiGridAligned grid2 = new CombiGridAligned(levels, 32);
 		System.out.println("Gridsize: " + grid.gridSize);
 		System.out.println("Arraysize: " + grid.arraySize);
-		for(int i = 0; i < 10000; i++) {
+		/*for(int i = 0; i < 10000; i++) {
 			//grid.setValues(GridFunctions.ALLONES);
 			//grid.hierarchizeOptimized(4);
-		}
-		grid2.hierarchizeOptimized(4);
+		}*/
+		//grid2.hierarchizeOptimized(4);
 		grid.setValues(GridFunctions.ALLONES);
 		grid.hierarchizeRecursive();
-		if (grid.compare(grid2)){
+		/*if (grid.compare(grid2)){
 			System.out.println("The grids are equal.");
 		} else System.out.println("not equal grids. check code.");
-		//grid.printValues();
+		 */
+		grid.printValues();
 		//grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimizedParallelStream(16, 1000);
 		//grid2.printValues();
@@ -79,12 +80,12 @@ public class CombiGridAligned {
 		}
 		strides[dimensions]=arraySize;
 		grid = new double[arraySize];
-		
-		
+
+
 		rf =  new float[dimensions];
 		for(int j=0;j<dimensions;j++) rf[j]=(float) 1.0;
 
-		
+
 	}
 
 	private void printValues2DArr(int size, int offset, int n0) {
@@ -571,54 +572,54 @@ public class CombiGridAligned {
 	}
 
 
-	
-//	public void hierarchizeOptimizedParallelStream(int blockSize, int numberOfChunks) {
-//		int dimension;
-//		int stride = 1;
-//		int pointsInDimension;
-//		int numberOfPoles;
-//		int jump;
-//		int polesPerChunk;
-//		int numberOfBlocks;
-//		int blocksPerChunk;
-//		List<PoleBlockAligned> blocks = new ArrayList<PoleBlockAligned>();
-//
-//
-//		//dimension 1 separate as start of each pole is easier to calculate
-//		pointsInDimension = noAligned;
-//		numberOfPoles = arraySize / pointsInDimension;
-//		polesPerChunk = numberOfPoles / numberOfChunks;
-//
-//		for(int i = 0; i < numberOfChunks; i++) {
-//			int from = i * polesPerChunk;
-//			int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerChunk * (i + 1);
-//			blocks.add(new PoleBlockAligned(this, 1, pointsInDimension, 0, pointsInDimension, blockSize, from, to));
-//		}
-//
-//		blocks
-//		.parallelStream()
-//		.forEach(block -> block.hierarchize());
-//
-//		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
-//			blocks.clear();
-//			stride *= pointsInDimension;
-//			pointsInDimension = pointsPerDimension[dimension];
-//			jump = stride * pointsInDimension;
-//			numberOfPoles = arraySize / pointsInDimension;
-//			numberOfBlocks = numberOfPoles / blockSize;
-//			blocksPerChunk = numberOfBlocks / numberOfChunks;
-//			for(int i = 0; i < numberOfChunks; i++) {
-//				int from = i * blocksPerChunk;
-//				int to = (i + 1 == numberOfChunks) ? numberOfBlocks : blocksPerChunk * (i + 1);
-//				blocks.add(new PoleBlockAligned(this, stride, pointsInDimension, dimension, jump, blockSize, from, to));
-//			}
-//
-//			blocks
-//			.parallelStream()
-//			.forEach(block -> block.hierarchize());
-//		}
-//		// end loop over dimension 2 to d
-//	}
+
+	//	public void hierarchizeOptimizedParallelStream(int blockSize, int numberOfChunks) {
+	//		int dimension;
+	//		int stride = 1;
+	//		int pointsInDimension;
+	//		int numberOfPoles;
+	//		int jump;
+	//		int polesPerChunk;
+	//		int numberOfBlocks;
+	//		int blocksPerChunk;
+	//		List<PoleBlockAligned> blocks = new ArrayList<PoleBlockAligned>();
+	//
+	//
+	//		//dimension 1 separate as start of each pole is easier to calculate
+	//		pointsInDimension = noAligned;
+	//		numberOfPoles = arraySize / pointsInDimension;
+	//		polesPerChunk = numberOfPoles / numberOfChunks;
+	//
+	//		for(int i = 0; i < numberOfChunks; i++) {
+	//			int from = i * polesPerChunk;
+	//			int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerChunk * (i + 1);
+	//			blocks.add(new PoleBlockAligned(this, 1, pointsInDimension, 0, pointsInDimension, blockSize, from, to));
+	//		}
+	//
+	//		blocks
+	//		.parallelStream()
+	//		.forEach(block -> block.hierarchize());
+	//
+	//		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
+	//			blocks.clear();
+	//			stride *= pointsInDimension;
+	//			pointsInDimension = pointsPerDimension[dimension];
+	//			jump = stride * pointsInDimension;
+	//			numberOfPoles = arraySize / pointsInDimension;
+	//			numberOfBlocks = numberOfPoles / blockSize;
+	//			blocksPerChunk = numberOfBlocks / numberOfChunks;
+	//			for(int i = 0; i < numberOfChunks; i++) {
+	//				int from = i * blocksPerChunk;
+	//				int to = (i + 1 == numberOfChunks) ? numberOfBlocks : blocksPerChunk * (i + 1);
+	//				blocks.add(new PoleBlockAligned(this, stride, pointsInDimension, dimension, jump, blockSize, from, to));
+	//			}
+	//
+	//			blocks
+	//			.parallelStream()
+	//			.forEach(block -> block.hierarchize());
+	//		}
+	//		// end loop over dimension 2 to d
+	//	}
 
 	//	public void hierarchizeOptimizedParallelStream(int blockSize, int numberOfChunks) {
 	//		int dimension;
@@ -671,7 +672,7 @@ public class CombiGridAligned {
 	private int myPow2(int i) {
 		return 1 << i;
 	}
-	
+
 	private int pos( int index[]){
 		int retPos = 0;
 		for(int i =0; i< dimensions; i++) {
@@ -683,73 +684,82 @@ public class CombiGridAligned {
 	};
 
 
-//METHODS RELATED TO RECURSION.
+	//METHODS RELATED TO RECURSION.
 	double stencil( double center, double left, double right) { return center - .5*left -.5* right;};
-	
+
 	public void hierarchizeRecursive(){ //Overall recursive call
 		// this method starts the recursion, using the hierarchizeRec-call.
 
 		int centerInd[] = new int[dimensions];
 		Content fullInterval = new Content();
-		for( int i =0 ; i< dimensions; i++) {
-			fullInterval.l[i] = levels[i]-1; // boundary need not be split away
-			centerInd[i] = myPow2( levels[i]-1 ) -1;
+		for(int i =0; i < dimensions; i++) {
+			fullInterval.l[i] = levels[i] - 1; // boundary need not be split away
+			centerInd[i] = myPow2(levels[i] - 1) - 1;
 		}
+		
 		fullInterval.l[6] = 0 ; // no predecessors to the left
 		fullInterval.l[7] = 0 ; // no predecessors to the right
-		int center = pos( centerInd );
+		int center = pos(centerInd);
 		hierarchizeRec(0, dimensions, center, fullInterval);
 
 	}
-	
+
 	private Content copyContent(Content inputContent){
-//		Content outputContent = new Content();
-//		outputContent.asInt=inputContent.asInt;
-//		System.arraycopy(inputContent.l, 0, outputContent.l, 0, inputContent.l.length);
-		
+		//		Content outputContent = new Content();
+		//		outputContent.asInt=inputContent.asInt;
+		//		System.arraycopy(inputContent.l, 0, outputContent.l, 0, inputContent.l.length);
+
 		Content outputContent = new Content(inputContent.asInt, inputContent.l); 
 		return outputContent;
 	}
 
 	public void hierarchizeRec(int s, int t, int center, Content inputContent){
 		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
-		
+
 		Content ic = copyContent(inputContent);
 		//Content ic = new Content();
 		//ic.asInt = interval;
 
 		// chosedim
 		int localSize = 0; // sum of levels
-		for (int i=1;i<dimensions;i++) {
-			if(ic.l[i]>0) {
+		for (int i = 1; i < dimensions; i++) {
+			if(ic.l[i] > 0) {
 				localSize += ic.l[i];
 			}
 		}
-		if( localSize == 0 ) { // singleton cache line
-			if( ic.l[0] <= 0 ) { // real singleton
-				for(int i=s; i<t; i++) { 
+
+		if(localSize == 0) { // singleton cache line
+			if(ic.l[0] <= 0) { // real singleton
+				for(int i = s; i < t; i++) { 
 					int rmask = myPow2(i); // was set to = (1 << i); //TODO Reconsider possible errors here. We need a 8-bit bitarray, right?
 					int dist = myPow2(-ic.l[i]);
 					double lVal, rVal;
 					int posLeft, posRight;
-					if( (ic.l[6] & rmask)!=0 ) { //Checks if the bitwise combination equals to 1.
+					if((ic.l[6] & rmask) !=0) { //Checks if the bitwise combination equals to 1.
 						posLeft = center - dist*strides[i];
 						lVal = grid[posLeft];
-					} else {
+					}
+
+					else {
 						posLeft = -1;
 						lVal = 0.0;
 					}
-					if( (ic.l[7] & rmask)!=0 ) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+					
+					if((ic.l[7] & rmask) !=0) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
 						posRight = center + dist*strides[i];
-						rVal = grid[(posRight)];
-					} else {
+						rVal = grid[posRight];
+					}
+
+					else {
 						posRight = -1;
 						rVal = 0.0;
 					}
-					 grid[(center)] = stencil(grid[(center)],lVal,rVal);
 					
+					grid[center] = stencil(grid[center], lVal, rVal);
 				}
-			} else {
+			} 
+			
+			else {
 				if( s == 0 ) { // actually hierarchize in dir 0
 					int rmask = (1 << 0); // replace by iterative?
 					int dist = myPow2(ic.l[0]);
@@ -757,39 +767,48 @@ public class CombiGridAligned {
 					int leftBdPos, rightBdPos;
 					// hierarchize1DUnoptimized(CGIndex start, CGIndex stride, CGIndex size, int dim) does not fit because it never uses boundary
 					// if we don't split in dim0, we know we are at the boundary...
-					if( (ic.l[6] & rmask)!=0 ) { //centerInd[i] - dist >= 0 ) { // it should be == -1, but hey
+					if((ic.l[6] & rmask) !=0) { //centerInd[i] - dist >= 0 ) { // it should be == -1, but hey
 						leftBdPos = center - dist;
-						leftBdVal = grid[(leftBdPos)];
-					} else {
+						leftBdVal = grid[leftBdPos];
+					}
+					
+					else {
 						leftBdPos = -1;
 						leftBdVal = 0.0;
 					}
-					if( (ic.l[7] & rmask)!=0 ) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+					
+					if((ic.l[7] & rmask) !=0) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
 						rightBdPos = center + dist;
-						rightBdVal = grid[(rightBdPos)];
-					} else {
+						rightBdVal = grid[rightBdPos];
+					}
+					
+					else {
 						rightBdPos = -1;
 						rightBdVal = 0.0;
 					}
+					
 					int step = 1;
-					while( step < dist) {
+					while(step < dist) {
 						int start = center - dist + step;
 
-						grid[(start)] = stencil(grid[(start)],leftBdVal,grid[(start+step)]);
+						grid[(start)] = stencil(grid[start], leftBdVal, grid[(start + step)]);
 
 						start += 2*step;
-						while( start < center+dist-step ) {
+						while( start < center + dist - step ) {
 
-							grid[(start)] = stencil(grid[(start)],grid[(start-step)],grid[(start+step)]);
+							grid[start] = stencil(grid[start],grid[start-step],grid[start+step]);
 							start += 2*step;
 						}
+						
 						assert( start == center+dist-step );
-						grid[(start)] = stencil(grid[(start)],grid[(start-step)],rightBdVal);
+						grid[start] = stencil(grid[start], grid[start-step], rightBdVal);
 						step *= 2;
-					} // while of levels
-					grid[(center)] = stencil(grid[(center)],leftBdVal,rightBdVal);
-					s=1; // hierarchized in dim 0
+					}
+					// while of levels
+					grid[(center)] = stencil(grid[center], leftBdVal, rightBdVal);
+					s = 1; // hierarchized in dim 0
 				}
+				
 				int d0dist = myPow2(ic.l[0]);
 				int first = - d0dist +1;
 				int last = + d0dist -1;
@@ -798,14 +817,14 @@ public class CombiGridAligned {
 					int dist = myPow2(-ic.l[dim]);
 					assert(0== (center+first) %4 );
 					assert(2== (center+last) %4 );
-					if( ((ic.l[6] & rmask))!=0 && (ic.l[7] & rmask)!=0 ) {
-						for(int i=first; i<= last-3; i+= 4) {
+					if(((ic.l[6] & rmask)) !=0 && (ic.l[7] & rmask)!=0) {
+						for(int i = first; i <= last - 3; i += 4) {
 							System.out.println("the bitshift now works.");
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
 						}
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,true,dim);
 					}
-					
+
 					if( (ic.l[6] & rmask)!=0 && (ic.l[7] & rmask)==0 ) {
 						for(int i=first; i<= last-3; i+= 4) {
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,false,dim);
@@ -821,7 +840,9 @@ public class CombiGridAligned {
 					} 
 				}
 			}
-		} else { 
+		}
+		
+		else { 
 			int r=0;
 			//We added the cast to int in the following line.
 			int maxl=ic.l[0] - recTile - ((int) (recTallPar * localSize)); // block size of pseudo singletons, tall cache assumption. 
@@ -831,36 +852,41 @@ public class CombiGridAligned {
 					maxl = (int) (rf[i]*ic.l[i]);
 				}
 			}
-			Content midI = copyContent(inputContent);
-			Content leftI = copyContent(inputContent); // ic used for right
+			//Content midI = copyContent(inputContent);
+			//Content leftI = copyContent(inputContent); // ic used for right
+			Content midI, leftI;
+			midI = copyContent(ic);
 			midI.l[r] = -midI.l[r];
 			ic.l[r]--;
 			int dist = myPow2(ic.l[r]); // already reduced!
-			leftI.asInt = ic.asInt;
+			//leftI.asInt = ic.asInt;
+			leftI = copyContent(ic);
 			int rmask = myPow2(r);
 			ic.l[6] |= rmask;
 			leftI.l[7] |= rmask;
-			dist *=strides[r]; // already reduced!
-			if( r < s) r=s; // avoid calls!
-			if( r > t) r=t;
-			if( (localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0) 
-					)
+			dist *= strides[r]; // already reduced!
+			if(r < s) r = s; // avoid calls!
+			if(r > t) r = t;
+			if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
 			{ 
-				if( r>s ) hierarchizeRec(s, r, center, midI);
-				if(t>r) hierarchizeRec(r, t, center, midI);
-			} else {
-				if( r>s ) hierarchizeRec(s, r, center, midI);
+				if(r > s) hierarchizeRec(s, r, center, midI);
 				hierarchizeRec(s, t, center - dist, leftI);
 				hierarchizeRec(s, t, center + dist, ic);
-				if(t>r) hierarchizeRec(r, t, center, midI);
+				if(t > r) hierarchizeRec(r, t, center, midI);
+			} 
+			
+			else {
+				if(r > s) hierarchizeRec(s, r, center, midI);
+				hierarchizeRec(s, t, center - dist, leftI);
+				hierarchizeRec(s, t, center + dist, ic);
+				if(t > r) hierarchizeRec(r, t, center, midI);
 			}
-		};
-		System.out.println("1rec");
+		}
 	}
 
 	public void hierarchizeApplyStencil4v4(int center, int offset, boolean left, boolean right, int r ) {
 		double val1, val2, val3, val4, temp1 = 0.0, temp2 = 0.0, temp3 = 0.0, temp4 = 0.0,
-		right1 = 0.0, right2 = 0.0, right3 = 0.0, right4 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0, left4 = 0.0;
+				right1 = 0.0, right2 = 0.0, right3 = 0.0, right4 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0, left4 = 0.0;
 		int pLeft = center - offset;
 		int pRight = center + offset;
 
@@ -872,20 +898,20 @@ public class CombiGridAligned {
 			val2 = grid[center + 1];
 			val3 = grid[center + 2];
 			val4 = grid[center + 3];
-			
+
 			if(left) {
 				left1 = grid[pLeft];
 				left2 = grid[pLeft + 1];
 				left3 = grid[pLeft + 2];
 				left4 = grid[pLeft + 3];
-				
+
 				if(right) {
 					left1 = left1 * 0.5;
 					left2 = left2 * 0.5;
 					left3 = left3 * 0.5;
 					left4 = left4 * 0.5;
 				}
-				
+
 				else {
 					temp1 = left1 * 0.5;
 					temp2 = left2 * 0.5;
@@ -906,7 +932,7 @@ public class CombiGridAligned {
 					right3 = right3 * 0.5;
 					right4 = right4 * 0.5;
 				}
-				
+
 				else {
 					temp1 = right1 * 0.5;
 					temp2 = right2 * 0.5;
@@ -931,7 +957,7 @@ public class CombiGridAligned {
 
 	public void hierarchizeApplyStencil3v4(int center, int offset, boolean left, boolean right, int r ) {
 		double val1, val2, val3, temp1 = 0.0, temp2 = 0.0, temp3 = 0.0,
-		right1 = 0.0, right2 = 0.0, right3 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0;
+				right1 = 0.0, right2 = 0.0, right3 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0;
 		int pLeft = center - offset;
 		int pRight = center + offset;
 
@@ -943,18 +969,18 @@ public class CombiGridAligned {
 			val1 = grid[center];
 			val2 = grid[center + 1];
 			val3 = grid[center + 2];
-			
+
 			if(left) {
 				left1 = grid[pLeft];
 				left2 = grid[pLeft + 1];
 				left3 = grid[pLeft + 2];
-				
+
 				if(right) {
 					left1 = left1 * 0.5;
 					left2 = left2 * 0.5;
 					left3 = left3 * 0.5;
 				}
-				
+
 				else {
 					temp1 = left1 * 0.5;
 					temp2 = left2 * 0.5;
@@ -972,7 +998,7 @@ public class CombiGridAligned {
 					right2 = right2 * 0.5;
 					right3 = right3 * 0.5;
 				}
-				
+
 				else {
 					temp1 = right1 * 0.5;
 					temp2 = right2 * 0.5;
