@@ -19,7 +19,7 @@ public class ScalingTest {
 		//testAllUnoptimized();
 		//testAllOptimized();
 		
-		for (int i = 25; i <32 ; i++){
+		/*for (int i = 25; i <32 ; i++){
 			CombiGridAligned cga = createAlignedGrid(i);
 			System.out.println("-------------------------------------");
 			System.out.println("Now working on a grid of size " + i);
@@ -50,6 +50,8 @@ public class ScalingTest {
 			//testParallelStreamChunks(cg, 10);
 			//testOptimizedParallelStreamChunks(cga, 10);
 		}
+		*/
+		testAllOptimized();
 	}
 	
 	private static void testAllUnoptimized() {
