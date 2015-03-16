@@ -29,7 +29,7 @@ public class CombiGridAligned {
 	int recMinSpawn=17;
 
 	public static void main(String[] args) {
-		int[] levels = {4, 4, 4, 4, 4};
+		int[] levels = {3, 3, 3, 3, 3};
 		CombiGridAligned grid = new CombiGridAligned(levels, 32);
 		CombiGridAligned grid2 = new CombiGridAligned(levels, 32);
 		System.out.println("Gridsize: " + grid.gridSize);
@@ -698,16 +698,25 @@ public class CombiGridAligned {
 		fullInterval.l[6] = 0 ; // no predecessors to the left
 		fullInterval.l[7] = 0 ; // no predecessors to the right
 		int center = pos( centerInd );
-		hierarchizeRec(0, dimensions, center, fullInterval.asInt);
+		hierarchizeRec(0, dimensions, center, fullInterval);
 
 	}
-
-	public void hierarchizeRec(int s, int t, int center, int interval){
-		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
-
+	
+	private Content copyContent(Content inputContent){
+//		Content outputContent = new Content();
+//		outputContent.asInt=inputContent.asInt;
+//		System.arraycopy(inputContent.l, 0, outputContent.l, 0, inputContent.l.length);
 		
-		Content ic = new Content();
-		ic.asInt = interval;
+		Content outputContent = new Content(inputContent.asInt, inputContent.l); 
+		return outputContent;
+	}
+
+	public void hierarchizeRec(int s, int t, int center, Content inputContent){
+		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
+		
+		Content ic = copyContent(inputContent);
+		//Content ic = new Content();
+		//ic.asInt = interval;
 
 		// chosedim
 		int localSize = 0; // sum of levels
@@ -723,14 +732,14 @@ public class CombiGridAligned {
 					int dist = myPow2(-ic.l[i]);
 					double lVal, rVal;
 					int posLeft, posRight;
-					if( (ic.l[6] & rmask)==1 ) { //Checks if the bitwise combination equals to 1.
+					if( (ic.l[6] & rmask)!=0 ) { //Checks if the bitwise combination equals to 1.
 						posLeft = center - dist*strides[i];
 						lVal = grid[posLeft];
 					} else {
 						posLeft = -1;
 						lVal = 0.0;
 					}
-					if( (ic.l[7] & rmask)==1 ) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+					if( (ic.l[7] & rmask)!=0 ) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
 						posRight = center + dist*strides[i];
 						rVal = grid[(posRight)];
 					} else {
@@ -748,14 +757,14 @@ public class CombiGridAligned {
 					int leftBdPos, rightBdPos;
 					// hierarchize1DUnoptimized(CGIndex start, CGIndex stride, CGIndex size, int dim) does not fit because it never uses boundary
 					// if we don't split in dim0, we know we are at the boundary...
-					if( (ic.l[6] & rmask)==1 ) { //centerInd[i] - dist >= 0 ) { // it should be == -1, but hey
+					if( (ic.l[6] & rmask)!=0 ) { //centerInd[i] - dist >= 0 ) { // it should be == -1, but hey
 						leftBdPos = center - dist;
 						leftBdVal = grid[(leftBdPos)];
 					} else {
 						leftBdPos = -1;
 						leftBdVal = 0.0;
 					}
-					if( (ic.l[7] & rmask)==1 ) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+					if( (ic.l[7] & rmask)!=0 ) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
 						rightBdPos = center + dist;
 						rightBdVal = grid[(rightBdPos)];
 					} else {
@@ -789,7 +798,7 @@ public class CombiGridAligned {
 					int dist = myPow2(-ic.l[dim]);
 					assert(0== (center+first) %4 );
 					assert(2== (center+last) %4 );
-					if( (ic.l[6] & rmask)==1 && (ic.l[7] & rmask)==1 ) {
+					if( ((ic.l[6] & rmask))!=0 && (ic.l[7] & rmask)!=0 ) {
 						for(int i=first; i<= last-3; i+= 4) {
 							System.out.println("the bitshift now works.");
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
@@ -797,13 +806,13 @@ public class CombiGridAligned {
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,true,dim);
 					}
 					
-					if( (ic.l[6] & rmask)==1 && (ic.l[7] & rmask)!=1 ) {
+					if( (ic.l[6] & rmask)!=0 && (ic.l[7] & rmask)==0 ) {
 						for(int i=first; i<= last-3; i+= 4) {
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,false,dim);
 						}
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,false,dim);
 					}
-					if( (ic.l[6] & rmask)!=1 && (ic.l[7] & rmask)==1 ) {
+					if( (ic.l[6] & rmask)==0 && (ic.l[7] & rmask)!=0 ) {
 						for(int i=first; i<= last-3; i+= 4) {
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],false,true,dim);
 						}
@@ -822,9 +831,8 @@ public class CombiGridAligned {
 					maxl = (int) (rf[i]*ic.l[i]);
 				}
 			}
-			Content midI = new Content();
-			Content leftI = new Content(); // ic used for right
-			midI.asInt = interval;
+			Content midI = copyContent(inputContent);
+			Content leftI = copyContent(inputContent); // ic used for right
 			midI.l[r] = -midI.l[r];
 			ic.l[r]--;
 			int dist = myPow2(ic.l[r]); // already reduced!
@@ -838,13 +846,13 @@ public class CombiGridAligned {
 			if( (localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0) 
 					)
 			{ 
-				if( r>s ) hierarchizeRec(s, r, center, midI.asInt);
-				if(t>r) hierarchizeRec(r, t, center, midI.asInt);
+				if( r>s ) hierarchizeRec(s, r, center, midI);
+				if(t>r) hierarchizeRec(r, t, center, midI);
 			} else {
-				if( r>s ) hierarchizeRec(s, r, center, midI.asInt);
-				hierarchizeRec(s, t, center - dist, leftI.asInt);
-				hierarchizeRec(s, t, center + dist, ic.asInt);
-				if(t>r) hierarchizeRec(r, t, center, midI.asInt);
+				if( r>s ) hierarchizeRec(s, r, center, midI);
+				hierarchizeRec(s, t, center - dist, leftI);
+				hierarchizeRec(s, t, center + dist, ic);
+				if(t>r) hierarchizeRec(r, t, center, midI);
 			}
 		};
 		System.out.println("1rec");

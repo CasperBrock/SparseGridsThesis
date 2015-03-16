@@ -8,4 +8,9 @@ public class Content { //object for holding both int and array.
 	public Content(){
 		
 	}
+	
+	public Content(int asIntInput, int[] lInput){
+		asInt = asIntInput;
+		System.arraycopy(lInput, 0, l, 0, lInput.length);
+	}
 }
