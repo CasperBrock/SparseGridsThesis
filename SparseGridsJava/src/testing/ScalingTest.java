@@ -164,7 +164,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimized(4);
+				cg.hierarchizeOptimized(16);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -175,7 +175,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimizedThreads(4, 16);
+				cg.hierarchizeOptimizedThreads(16, 16);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -186,7 +186,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimizedThreadsOnce(4, 16);
+				cg.hierarchizeOptimizedThreadsOnce(16, 16);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -197,7 +197,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimizedTasks(4, 16);
+				cg.hierarchizeOptimizedTasks(16, 16);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
