@@ -28,7 +28,7 @@ public class CombiGridAligned {
 	int recMaxSpawn=16;
 	int recMinSpawn=17;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) {		
 		int[] levels = {2, 2};
 		CombiGridAligned grid = new CombiGridAligned(levels, 32);
 		CombiGridAligned grid2 = new CombiGridAligned(levels, 32);
@@ -38,14 +38,15 @@ public class CombiGridAligned {
 			//grid.setValues(GridFunctions.ALLONES);
 			//grid.hierarchizeOptimized(4);
 		}*/
-		//grid2.hierarchizeOptimized(4);
+		grid2.setValues(GridFunctions.ALLONES);
+		grid2.hierarchizeOptimized(4);
 		grid.setValues(GridFunctions.ALLONES);
 		grid.hierarchizeRecursive();
-		/*if (grid.compare(grid2)){
+		if (grid.compare(grid2)){
 			System.out.println("The grids are equal.");
 		} else System.out.println("not equal grids. check code.");
-		 */
-		grid.printValues();
+		 
+		//grid.printValues();
 		//grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimizedParallelStream(16, 1000);
 		//grid2.printValues();
@@ -70,6 +71,7 @@ public class CombiGridAligned {
 		gridSize = pointsPerDimension[0];
 		arraySize = noAligned;
 		strides = new int[dimensions+1];
+		strides[0] = 1;
 		for (i = 1; i < dimensions; i++) {
 			this.levels[i] = levels[i];
 			pointsPerDimension[i] = myPow2(levels[i]) - 1;
@@ -692,7 +694,7 @@ public class CombiGridAligned {
 
 		int centerInd[] = new int[dimensions];
 		Content fullInterval = new Content();
-		for(int i =0; i < dimensions; i++) {
+		for(int i = 0; i < dimensions; i++) {
 			fullInterval.l[i] = levels[i] - 1; // boundary need not be split away
 			centerInd[i] = myPow2(levels[i] - 1) - 1;
 		}
@@ -817,21 +819,20 @@ public class CombiGridAligned {
 					int dist = myPow2(-ic.l[dim]);
 					assert(0== (center+first) %4 );
 					assert(2== (center+last) %4 );
-					if(((ic.l[6] & rmask)) !=0 && (ic.l[7] & rmask)!=0) {
+					if(((ic.l[6] & rmask) !=0) && ((ic.l[7] & rmask) !=0)) {
 						for(int i = first; i <= last - 3; i += 4) {
-							System.out.println("the bitshift now works.");
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
 						}
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,true,dim);
 					}
 
-					if( (ic.l[6] & rmask)!=0 && (ic.l[7] & rmask)==0 ) {
+					if(((ic.l[6] & rmask) !=0) && ((ic.l[7] & rmask) ==0)) {
 						for(int i=first; i<= last-3; i+= 4) {
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,false,dim);
 						}
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,false,dim);
 					}
-					if( (ic.l[6] & rmask)==0 && (ic.l[7] & rmask)!=0 ) {
+					if(((ic.l[6] & rmask) == 0) && ((ic.l[7] & rmask) !=0)) {
 						for(int i=first; i<= last-3; i+= 4) {
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],false,true,dim);
 						}
@@ -843,13 +844,13 @@ public class CombiGridAligned {
 		}
 		
 		else { 
-			int r=0;
+			int r = 0;
 			//We added the cast to int in the following line.
-			int maxl=ic.l[0] - recTile - ((int) (recTallPar * localSize)); // block size of pseudo singletons, tall cache assumption. 
-			for(int i=1;i<dimensions;i++){
-				if( rf[i]*ic.l[i] > maxl ) {
+			int maxl = ic.l[0] - recTile - ((int) (recTallPar * localSize)); // block size of pseudo singletons, tall cache assumption. 
+			for(int i = 1; i < dimensions; i++){
+				if(rf[i] * ic.l[i] > maxl) {
 					r = i;
-					maxl = (int) (rf[i]*ic.l[i]);
+					maxl = (int) (rf[i] * ic.l[i]);
 				}
 			}
 			//Content midI = copyContent(inputContent);
