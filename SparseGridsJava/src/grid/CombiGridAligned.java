@@ -29,7 +29,7 @@ public class CombiGridAligned {
 	int recMinSpawn=17;
 
 	public static void main(String[] args) {
-		int[] levels = {2, 2};
+		int[] levels = {10, 14};
 		CombiGridAligned grid = new CombiGridAligned(levels, 32);
 		CombiGridAligned grid2 = new CombiGridAligned(levels, 32);
 		System.out.println("Gridsize: " + grid.gridSize);
@@ -38,13 +38,14 @@ public class CombiGridAligned {
 			//grid.setValues(GridFunctions.ALLONES);
 			//grid.hierarchizeOptimized(4);
 		}*/
-		//grid2.hierarchizeOptimized(4);
+		grid2.setValues(GridFunctions.ALLONES);
+		grid2.hierarchizeOptimized(4);
 		grid.setValues(GridFunctions.ALLONES);
 		grid.hierarchizeRecursive();
-		/*if (grid.compare(grid2)){
+		if (grid.compare(grid2)){
 			System.out.println("The grids are equal.");
 		} else System.out.println("not equal grids. check code.");
-		 */
+		
 		grid.printValues();
 		//grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimizedParallelStream(16, 1000);
@@ -70,6 +71,7 @@ public class CombiGridAligned {
 		gridSize = pointsPerDimension[0];
 		arraySize = noAligned;
 		strides = new int[dimensions+1];
+		strides[0]=1;
 		for (i = 1; i < dimensions; i++) {
 			this.levels[i] = levels[i];
 			pointsPerDimension[i] = myPow2(levels[i]) - 1;
@@ -705,10 +707,6 @@ public class CombiGridAligned {
 	}
 
 	private Content copyContent(Content inputContent){
-		//		Content outputContent = new Content();
-		//		outputContent.asInt=inputContent.asInt;
-		//		System.arraycopy(inputContent.l, 0, outputContent.l, 0, inputContent.l.length);
-
 		Content outputContent = new Content(inputContent.asInt, inputContent.l); 
 		return outputContent;
 	}
@@ -717,8 +715,6 @@ public class CombiGridAligned {
 		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
 
 		Content ic = copyContent(inputContent);
-		//Content ic = new Content();
-		//ic.asInt = interval;
 
 		// chosedim
 		int localSize = 0; // sum of levels
@@ -731,7 +727,7 @@ public class CombiGridAligned {
 		if(localSize == 0) { // singleton cache line
 			if(ic.l[0] <= 0) { // real singleton
 				for(int i = s; i < t; i++) { 
-					int rmask = myPow2(i); // was set to = (1 << i); //TODO Reconsider possible errors here. We need a 8-bit bitarray, right?
+					int rmask = myPow2(i);
 					int dist = myPow2(-ic.l[i]);
 					double lVal, rVal;
 					int posLeft, posRight;
@@ -819,7 +815,6 @@ public class CombiGridAligned {
 					assert(2== (center+last) %4 );
 					if(((ic.l[6] & rmask)) !=0 && (ic.l[7] & rmask)!=0) {
 						for(int i = first; i <= last - 3; i += 4) {
-							System.out.println("the bitshift now works.");
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
 						}
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,true,dim);
@@ -868,7 +863,7 @@ public class CombiGridAligned {
 			if(r < s) r = s; // avoid calls!
 			if(r > t) r = t;
 			if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
-			{ 
+			{ //It doesn't seem necessary to have this if/else?
 				if(r > s) hierarchizeRec(s, r, center, midI);
 				hierarchizeRec(s, t, center - dist, leftI);
 				hierarchizeRec(s, t, center + dist, ic);
