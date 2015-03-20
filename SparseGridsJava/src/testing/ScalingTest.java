@@ -9,22 +9,37 @@ import java.util.List;
 public class ScalingTest {
 
 	public static void main(String[] args) {
-		int[] levels = {6, 6, 2, 4, 4};
+		int[] levels = {8, 6, 5, 3, 2};
 		printInfo();
 		
 		
-		int[] levels2 = {4, 4, 4, 4, 4};
-		CombiGrid cg = new CombiGrid(levels);
+		int[] levels2 = {10, 10};
+		//CombiGrid cg = new CombiGrid(levels);
 		
-		CombiGridAligned cga = new CombiGridAligned(levels2, 32);
-		testRecursiveLinear(cga, 10);
-		cga=null;
-		System.gc();
 		
-		CombiGridAligned cga2 = new CombiGridAligned(levels2, 32);
-		testRecursiveThreaded(cga2, 10, 4);
-		cga=null;
-		System.gc();
+		for (int i=20;i<31;i++) {
+			System.out.println("Now running on a grid of size "+ i);
+			CombiGridAligned cga = createAlignedGrid(i);
+			//CombiGridAligned cga = new CombiGridAligned(levels2, 32);
+			RecursiveThreadedFindOptimalValues(cga, 10, 32);
+			cga=null;
+			System.gc();
+		}
+//		CombiGridAligned cga = new CombiGridAligned(levels2, 32);
+//		testRecursiveLinear(cga, 10);
+//		cga=null;
+//		System.gc();
+//		
+//		cga = new CombiGridAligned(levels2, 32);
+//		testRecursiveThreaded(cga, 10, 4);
+//		cga=null;
+//		System.gc();
+//		
+//		cga = new CombiGridAligned(levels2, 32);
+//		testOptimizedThreads(cga, 4);
+//		cga=null;
+//		System.gc();
+		
 		
 		//CombiGridAligned cga = new CombiGridAligned(levels, 32);
 		//testAllUnoptimized();
@@ -324,10 +339,85 @@ public class ScalingTest {
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
+				System.out.println(time);
 			}
 			avgTime = totalTime / repititions;
 			System.out.println("" + run + '\t' + avgTime);
 		}
+	}
+	
+	private static void RecursiveThreadedFindOptimalValues(CombiGridAligned cg, int repititions, int MaxNumberOfThreads){
+		//This method will vary all the input variables of the recursive method, including number of threads up to the input, but also when to stop the recursion.
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		
+		System.out.println("RecursiveThreadedFindOptimalValues");
+		System.out.println("recMaxSpawn" +"\t"+ "RecMinSpawn"+"\t" + "Threads" + '\t'+ "Run" + '\t' +"recTile"+"\t"+ "Time in ms");
+		int LevelSum = 0;
+		for (int l : cg.levels){
+			LevelSum += l;
+		}
+
+		double currentBestTime = Integer.MAX_VALUE;
+		int bestMin=0;
+		int bestMax=0;
+		int bestTile=0;
+		int bestThreads=0;
+		System.out.println(LevelSum);
+
+		for(int run = 1; run <= 1; run++) {
+			totalTime = 0;
+			int NumberOfThreads=0;
+			cg.recTile=0;
+			cg.recMaxSpawn=2;
+			cg.recMinSpawn=0;
+			while (cg.recMaxSpawn < LevelSum){
+				cg.recMaxSpawn++;	
+
+				while(cg.recMinSpawn<cg.recMaxSpawn){
+					cg.recMinSpawn++;	
+
+					while (cg.recTile<cg.levels[0]) {
+						cg.recTile++;
+						NumberOfThreads=0;
+						while (NumberOfThreads<MaxNumberOfThreads){
+							NumberOfThreads++; //Starts at zero, so will be 1 on first run.
+							totalTime=0;
+							for(int i = 0; i < repititions; i++) {
+
+								cg.setValues(GridFunctions.ALLONES);
+								start = System.currentTimeMillis();
+								cg.hierarchizeRecursiveThreads(NumberOfThreads);
+								end = System.currentTimeMillis();
+								time = end - start;
+								totalTime += time;
+								//System.gc();
+								//System.out.println(time); //Un-comment, to get each time output.
+							}
+							avgTime = totalTime / repititions;
+							if (avgTime < currentBestTime) {
+								currentBestTime=avgTime;
+								bestMin = cg.recMinSpawn;
+								bestMax = cg.recMaxSpawn;
+								bestThreads=NumberOfThreads;
+								bestTile=cg.recTile;
+							}
+							System.out.println(cg.recMaxSpawn+"\t" +cg.recMinSpawn+"\t"+ NumberOfThreads+"\t"+run + '\t'+bestTile+"\t" + avgTime);
+						}
+					}
+				}
+			}
+		}
+
+		System.out.println("Best values:");
+		System.out.println("Time:\t" + currentBestTime+" ms");
+		System.out.println("RecMinLevel:\t"+ bestMin);
+		System.out.println("RecMaxLevel:\t"+bestMax);
+		System.out.println("Threads:\t"+bestThreads);
+		System.out.println("RecTile:\t"+bestTile);
 	}
 	
 	private static void testOptimized(CombiGridAligned cg, int repititions) {

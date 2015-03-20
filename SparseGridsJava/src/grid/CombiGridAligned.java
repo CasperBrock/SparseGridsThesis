@@ -24,11 +24,11 @@ public class CombiGridAligned {
 	int noAligned;
 	int arraySize;
 	int[] strides; //used for the recursive code.
-	int recTile=9; //Some values are hard coded in the original.
-	double recTallPar=0.3;
+	public int recTile=5; //Some values are hard coded in the original.
+	public double recTallPar=0.3;
 	float [] rf; 
-	int recMaxSpawn=16;
-	int recMinSpawn=17;
+	public int recMaxSpawn=14; //Public, for varying within the test.
+	public int recMinSpawn=13; //Public, for varying within the test.
 
 	public static void main(String[] args) {
 		int[] levels = {4, 4, 4};
@@ -865,12 +865,12 @@ public class CombiGridAligned {
 			if(r < s) r = s; // avoid calls!
 			if(r > t) r = t;
 			if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
-			{ //It doesn't seem necessary to have this if/else?
+			{
 				if(r > s) hierarchizeRec(s, r, center, midI); 
 				hierarchizeRec(s, t, center - dist, leftI);
 				hierarchizeRec(s, t, center + dist, ic);
 				if(t > r) hierarchizeRec(r, t, center, midI);
-			} //THREADING RECURSIVE
+			}
 			
 			else {
 				if(r > s) hierarchizeRec(s, r, center, midI);
@@ -883,7 +883,7 @@ public class CombiGridAligned {
 	
 	public void hierarchizeRecursiveThreads(int NumberOfMaxThreads){ //Overall threaded recursive call
 		// this method starts the recursion, using the hierarchizeRec-call.
-		//It uses Javas inbuilt threaded recursion-system.
+		//It uses Javas inbuilt threaded recursion-system, which maintains a threadpool.
 		ForkJoinPool pool = new ForkJoinPool(NumberOfMaxThreads); //For starting and distributing the tasks.
 		
 		
