@@ -6,11 +6,11 @@ import gridFunctions.*;
 public class Verification {
 
 	public static void main(String[] args) {
-		//verifyUnoptimized();
-		verifyOptimized();
+		verify();
+		//verifyAligned();
 	}
 
-	public static void verifyUnoptimized() {
+	public static void verify() {
 		boolean test1, test2, test3;
 		CombiGrid real, test;
 
@@ -23,9 +23,9 @@ public class Verification {
 		real.hierarchizeUnoptimized();
 		test = new CombiGrid(levels1);
 		test1 = true;
-		for(int i = 1; i < 16; i++) {
+		for(int i = 1; i < 2; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			//test.hierarchizeUnoptimizedParallelStream(i);
+			test.hierarchizeOptimized(4);
 			test1 = test1 && real.compare(test);
 		}
 
@@ -34,9 +34,9 @@ public class Verification {
 		real.hierarchizeUnoptimized();
 		test = new CombiGrid(levels2);
 		test2 = true;
-		for(int i = 1; i < 16; i++) {
+		for(int i = 1; i < 2; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			//test.hierarchizeUnoptimizedParallelStream(i);
+			test.hierarchizeOptimized(4);
 			test2 = test2 && real.compare(test);
 		}
 
@@ -45,16 +45,16 @@ public class Verification {
 		real.hierarchizeUnoptimized();
 		test = new CombiGrid(levels3);
 		test3 = true;
-		for(int i = 1; i < 16; i++) {
+		for(int i = 1; i < 2; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			//test.hierarchizeUnoptimizedParallelStream(i);
+			test.hierarchizeOptimized(4);
 			test3 = test3 && real.compare(test);
 		}
 
 		System.out.println("Result: " + (test1 && test2 && test3));
 	}
 	
-	public static void verifyOptimized() {
+	public static void verifyAligned() {
 		boolean test1, test2, test3;
 		CombiGridAligned real, test;
 
@@ -69,7 +69,7 @@ public class Verification {
 		test1 = true;
 		for(int i = 1; i < 16; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			test.hierarchizeOptimizedThreadsOnce(4, i);
+			test.hierarchizeRecursive();
 			test1 = test1 && real.compare(test);
 		}
 
@@ -80,7 +80,7 @@ public class Verification {
 		test2 = true;
 		for(int i = 1; i < 16; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			test.hierarchizeOptimizedThreadsOnce(4, i);
+			test.hierarchizeRecursive();
 			test2 = test2 && real.compare(test);
 		}
 
@@ -91,7 +91,7 @@ public class Verification {
 		test3 = true;
 		for(int i = 1; i < 16; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			test.hierarchizeOptimizedThreadsOnce(4, i);
+			test.hierarchizeRecursive();
 			test3 = test3 && real.compare(test);
 		}
 

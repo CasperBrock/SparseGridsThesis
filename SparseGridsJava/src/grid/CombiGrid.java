@@ -20,17 +20,22 @@ public class CombiGrid {
 	public int[] pointsPerDimension;
 
 	public static void main(String[] args) {
-		int[] levels = {3, 3, 3, 3, 3};
+		//int[] levels = {3, 3, 3, 3, 3};
+		//CombiGrid grid = new CombiGrid(levels);
+		int[] levels = {5, 5, 5, 5, 5};
 		CombiGrid grid = new CombiGrid(levels);
-		//int[] levels = {3, 3};
-		//CombiGrid grid = new CombiGrid(2, levels);
-		//Arrays.fill(grid.grid, 1.0);
-		for(int i = 0; i < 10000; i++) {
-			grid.setValues(GridFunctions.ALLONES);
-			grid.hierarchizeUnoptimized();
-		}
-		//System.out.println("Array size is: " + grid.grid.length);
-		//grid.hierarchizeUnoptimized();
+		CombiGrid grid2 = new CombiGrid(levels);
+		grid.setValues(GridFunctions.ALLONES);
+		grid.hierarchizeOptimized(4);
+
+		grid2.setValues(GridFunctions.ALLONES);
+		grid2.hierarchizeUnoptimized();
+
+		if(grid2.compare(grid))
+			System.out.println("Grids are equal");
+		//grid.hierarchizeUnoptimizedThreads(4);
+		//grid.printValues();
+		//grid2.printValues();
 		//grid.hierarchizeUnoptimizedThreads(8);
 		//grid.hierarchizeUnoptimizedThreadsOnce(8);
 		//grid.hierarchizeUnoptimizedTasks(100);
@@ -86,7 +91,7 @@ public class CombiGrid {
 			}
 		}
 	}
-	
+
 	public boolean compare(CombiGrid cg) {
 		if (cg.gridSize != gridSize)
 			return false;
@@ -98,7 +103,7 @@ public class CombiGrid {
 			}
 		return true;
 	}
-	
+
 	public void setValues(GridFunctions func) {
 		double[] stepsize = new double[dimensions];
 		double[] x = new double[dimensions];
@@ -128,7 +133,7 @@ public class CombiGrid {
 			for (int d = 0; d < dimensions; d ++){
 				x[d] = dimensionCounter[d] * stepsize[d];
 			}
-			
+
 			grid[counter] = GridFunction.call(x, func);
 			dimensionCounter[0]++;
 		}
@@ -160,10 +165,7 @@ public class CombiGrid {
 			grid[start + offset * stride] -= 0.5 * grid[start + offset * stride + parOffsetStrided];
 			offset += stepSize;
 			left = 0.5 * grid[start + offset * stride - parOffsetStrided];
-			for (ctr = 1; ctr < steps - 1; ctr++) {
-				
-				
-				
+			for (ctr = 1; ctr < steps - 1; ctr++) {					
 				val1 = grid[start + offset * stride];
 				right = 0.5 * grid[start + offset * stride + parOffsetStrided];
 				val2 = val1 - left;
@@ -188,6 +190,236 @@ public class CombiGrid {
 		grid[start + offset * stride] -= right;
 	}
 
+	public void hierarchize1DOptimized4(int start, int stride, int size,
+			int dimension, int unroll) {
+		// optimized with vector operations. lvl for any dim must be larger
+		// than 1.
+		int level;
+		int steps;
+		int offset, parentOffset;
+		int stepsize;
+		int parOffsetStrided;
+		double val1, val2, val3, val4, right1, right2, right3, right4, left1, left2, left3, left4;
+		level = levels[dimension];
+		steps = myPow2(level - 1);
+		offset = 0;
+		stepsize = 2;
+		parentOffset = 1;
+
+		for (level--; level > 1; level--) {
+			parOffsetStrided = parentOffset * stride;
+
+			for (int poleLoop = 0; poleLoop < unroll; poleLoop += 4) {
+				right1 = grid[start + offset * stride + poleLoop] * 0.5;
+				right2 = grid[start + offset * stride + poleLoop + 1] * 0.5;
+				right3 = grid[start + offset * stride + poleLoop + 2] * 0.5;
+				right4 = grid[start + offset * stride + poleLoop + 3] * 0.5;
+
+				val1 = grid[start + offset * stride + poleLoop];
+				val2 = grid[start + offset * stride + poleLoop + 1];
+				val3 = grid[start + offset * stride + poleLoop + 2];
+				val4 = grid[start + offset * stride + poleLoop + 3];
+
+				grid[start + offset * stride + poleLoop] = val1 - right1;
+				grid[start + offset * stride + poleLoop + 1] = val2 - right2;
+				grid[start + offset * stride + poleLoop + 2] = val3 - right3;
+				grid[start + offset * stride + poleLoop + 3] = val4 - right4;
+			} // end poleLoop
+			offset += stepsize;
+
+			for (int counter = 1; counter < steps - 1; counter++) {
+				for (int poleLoop = 0; poleLoop < unroll; poleLoop += 4) {
+					left1 = grid[start + offset * stride - parOffsetStrided + poleLoop] * 0.5;
+					left2 = grid[start + offset * stride - parOffsetStrided + poleLoop + 1] * 0.5;
+					left3 = grid[start + offset * stride - parOffsetStrided + poleLoop + 2] * 0.5;
+					left4 = grid[start + offset * stride - parOffsetStrided + poleLoop + 3] * 0.5;
+
+					val1 = grid[start + offset * stride + poleLoop];
+					val2 = grid[start + offset * stride + poleLoop + 1];
+					val3 = grid[start + offset * stride + poleLoop + 2];
+					val4 = grid[start + offset * stride + poleLoop + 3];
+
+					right1 = grid[start + offset * stride + poleLoop] * 0.5;
+					right2 = grid[start + offset * stride + poleLoop + 1] * 0.5;
+					right3 = grid[start + offset * stride + poleLoop + 2] * 0.5;
+					right4 = grid[start + offset * stride + poleLoop + 3] * 0.5;
+
+					grid[start + offset * stride + poleLoop] = val1	- left1 - right1;
+					grid[start + offset * stride + poleLoop + 1] = val2	- left2 - right2;
+					grid[start + offset * stride + poleLoop + 2] = val3 - left3 - right3;
+					grid[start + offset * stride + poleLoop + 3] = val4 - left4 - right4;
+				}
+
+				offset += stepsize;
+			}
+
+			for (int poleLoop = 0; poleLoop < unroll; poleLoop += 4) {
+				left1 = grid[start + offset * stride - parOffsetStrided + poleLoop] * 0.5;
+				left2 = grid[start + offset * stride - parOffsetStrided + poleLoop + 1] * 0.5;
+				left3 = grid[start + offset * stride - parOffsetStrided + poleLoop + 2] * 0.5;
+				left4 = grid[start + offset * stride - parOffsetStrided + poleLoop + 3] * 0.5;
+
+				val1 = grid[start + offset * stride + poleLoop];
+				val2 = grid[start + offset * stride + poleLoop + 1];
+				val3 = grid[start + offset * stride + poleLoop + 2];
+				val4 = grid[start + offset * stride + poleLoop + 3];
+
+				grid[start + offset * stride + poleLoop] = val1 - left1;
+				grid[start + offset * stride + poleLoop + 1] = val2 - left2;
+				grid[start + offset * stride + poleLoop + 2] = val3 - left3;
+				grid[start + offset * stride + poleLoop + 3] = val4 - left4;
+			}
+
+			steps = steps >> 1;
+			offset = myPow2(levels[dimension] - level) - 1;
+			parentOffset = stepsize;
+			stepsize = stepsize << 1;
+		} // end loop over levels
+
+		// level = 2 seperate
+		for (int poleLoop = 0; poleLoop < unroll; poleLoop += 4) {
+			right1 = grid[start + (offset + parentOffset) * stride + poleLoop] * 0.5;
+			right2 = grid[start + (offset + parentOffset) * stride + poleLoop + 1] * 0.5;
+			right3 = grid[start + (offset + parentOffset) * stride + poleLoop + 2] * 0.5;
+			right4 = grid[start + (offset + parentOffset) * stride + poleLoop + 3] * 0.5;
+
+			val1 = grid[start + offset * stride + poleLoop];
+			val2 = grid[start + offset * stride + poleLoop + 1];
+			val3 = grid[start + offset * stride + poleLoop + 2];
+			val4 = grid[start + offset * stride + poleLoop + 3];
+
+			grid[start + offset * stride + poleLoop] = val1 - right1;
+			grid[start + offset * stride + poleLoop + 1] = val2	- right2;
+			grid[start + offset * stride + poleLoop + 2] = val3	- right3;
+			grid[start + offset * stride + poleLoop + 3] = val4	- right4;
+		}
+		offset += stepsize;
+
+		for (int poleLoop = 0; poleLoop < unroll; poleLoop += 4) { 
+			left1 = grid[start + (offset - parentOffset) * stride + poleLoop] * 0.5;
+			left2 = grid[start + (offset - parentOffset) * stride + poleLoop + 1] * 0.5;
+			left3 = grid[start + (offset - parentOffset) * stride + poleLoop + 2] * 0.5;
+			left4 = grid[start + (offset - parentOffset) * stride + poleLoop + 3] * 0.5;
+
+			val1 = grid[start + offset * stride + poleLoop];
+			val2 = grid[start + offset * stride + poleLoop + 1];
+			val3 = grid[start + offset * stride + poleLoop + 2];
+			val4 = grid[start + offset * stride + poleLoop + 3];
+
+			grid[start + offset * stride + poleLoop] = val1 - left1;
+			grid[start + offset * stride + poleLoop + 1] = val2 - left2;
+			grid[start + offset * stride + poleLoop + 2] = val3 - left3;
+			grid[start + offset * stride + poleLoop + 3] = val4 - left4;
+		} // end PoleLoop for level 2
+	}
+	
+	public void hierarchize1DOptimized3(int start, int stride, int size,
+			int dimension, int unroll) {
+		// optimized with vector operations. lvl for any dim must be larger
+		// than 1.
+		int level;
+		int steps;
+		int offset, parentOffset;
+		int stepsize;
+		int parOffsetStrided;
+		double val1, val2, val3, right1, right2, right3, left1, left2, left3;
+		level = levels[dimension];
+		steps = myPow2(level - 1);
+		offset = 0;
+		stepsize = 2;
+		parentOffset = 1;
+
+		for (level--; level > 1; level--) {
+			parOffsetStrided = parentOffset * stride;
+
+			for (int poleLoop = 0; poleLoop < unroll; poleLoop += 3) {
+				right1 = grid[start + offset * stride + poleLoop] * 0.5;
+				right2 = grid[start + offset * stride + poleLoop + 1] * 0.5;
+				right3 = grid[start + offset * stride + poleLoop + 2] * 0.5;
+
+				val1 = grid[start + offset * stride + poleLoop];
+				val2 = grid[start + offset * stride + poleLoop + 1];
+				val3 = grid[start + offset * stride + poleLoop + 2];
+
+				grid[start + offset * stride + poleLoop] = val1 - right1;
+				grid[start + offset * stride + poleLoop + 1] = val2 - right2;
+				grid[start + offset * stride + poleLoop + 2] = val3 - right3;
+			} // end poleLoop
+			offset += stepsize;
+
+			for (int counter = 1; counter < steps - 1; counter++) {
+				for (int poleLoop = 0; poleLoop < unroll; poleLoop += 3) {
+					left1 = grid[start + offset * stride - parOffsetStrided + poleLoop] * 0.5;
+					left2 = grid[start + offset * stride - parOffsetStrided + poleLoop + 1] * 0.5;
+					left3 = grid[start + offset * stride - parOffsetStrided + poleLoop + 2] * 0.5;
+
+					val1 = grid[start + offset * stride + poleLoop];
+					val2 = grid[start + offset * stride + poleLoop + 1];
+					val3 = grid[start + offset * stride + poleLoop + 2];
+
+					right1 = grid[start + offset * stride + poleLoop] * 0.5;
+					right2 = grid[start + offset * stride + poleLoop + 1] * 0.5;
+					right3 = grid[start + offset * stride + poleLoop + 2] * 0.5;
+
+					grid[start + offset * stride + poleLoop] = val1	- left1 - right1;
+					grid[start + offset * stride + poleLoop + 1] = val2	- left2 - right2;
+					grid[start + offset * stride + poleLoop + 2] = val3 - left3 - right3;
+				}
+
+				offset += stepsize;
+			}
+
+			for (int poleLoop = 0; poleLoop < unroll; poleLoop += 4) {
+				left1 = grid[start + offset * stride - parOffsetStrided + poleLoop] * 0.5;
+				left2 = grid[start + offset * stride - parOffsetStrided + poleLoop + 1] * 0.5;
+				left3 = grid[start + offset * stride - parOffsetStrided + poleLoop + 2] * 0.5;
+
+				val1 = grid[start + offset * stride + poleLoop];
+				val2 = grid[start + offset * stride + poleLoop + 1];
+				val3 = grid[start + offset * stride + poleLoop + 2];
+
+				grid[start + offset * stride + poleLoop] = val1 - left1;
+				grid[start + offset * stride + poleLoop + 1] = val2 - left2;
+				grid[start + offset * stride + poleLoop + 2] = val3 - left3;
+			}
+
+			steps = steps >> 1;
+			offset = myPow2(levels[dimension] - level) - 1;
+			parentOffset = stepsize;
+			stepsize = stepsize << 1;
+		} // end loop over levels
+
+		// level = 2 seperate
+		for (int poleLoop = 0; poleLoop < unroll; poleLoop += 4) {
+			right1 = grid[start + (offset + parentOffset) * stride + poleLoop] * 0.5;
+			right2 = grid[start + (offset + parentOffset) * stride + poleLoop + 1] * 0.5;
+			right3 = grid[start + (offset + parentOffset) * stride + poleLoop + 2] * 0.5;
+
+			val1 = grid[start + offset * stride + poleLoop];
+			val2 = grid[start + offset * stride + poleLoop + 1];
+			val3 = grid[start + offset * stride + poleLoop + 2];
+
+			grid[start + offset * stride + poleLoop] = val1 - right1;
+			grid[start + offset * stride + poleLoop + 1] = val2	- right2;
+			grid[start + offset * stride + poleLoop + 2] = val3	- right3;
+		}
+		offset += stepsize;
+
+		for (int poleLoop = 0; poleLoop < unroll; poleLoop += 4) { 
+			left1 = grid[start + (offset - parentOffset) * stride + poleLoop] * 0.5;
+			left2 = grid[start + (offset - parentOffset) * stride + poleLoop + 1] * 0.5;
+			left3 = grid[start + (offset - parentOffset) * stride + poleLoop + 2] * 0.5;
+
+			val1 = grid[start + offset * stride + poleLoop];
+			val2 = grid[start + offset * stride + poleLoop + 1];
+			val3 = grid[start + offset * stride + poleLoop + 2];
+
+			grid[start + offset * stride + poleLoop] = val1 - left1;
+			grid[start + offset * stride + poleLoop + 1] = val2 - left2;
+			grid[start + offset * stride + poleLoop + 2] = val3 - left3;
+		} // end PoleLoop for level 2
+	}
+
 	/***
 	 * Hierarchizes the grid with a sequential unoptimized algorithm.
 	 * This method performs the entire hierarchization sequentially.
@@ -204,13 +436,12 @@ public class CombiGrid {
 		//dimension 1 separate as start of each pole is easier to calculate
 		pointsInDimension = pointsPerDimension[0];
 		numberOfPoles = gridSize / pointsInDimension;
-		for (int i = 0; i < numberOfPoles; i++){
+		for (int i = 0; i < numberOfPoles; i++) {
 			start = i * pointsInDimension;
 			hierarchize1DUnoptimized(start, 1, pointsInDimension, 0);
-		}
-		// end dimension 1
+		} // end dimension 1
 
-		for(dimension = 1; dimension < dimensions; dimension++){ // hierarchize all dimensions
+		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
 			stride *= pointsInDimension;
 			pointsInDimension = pointsPerDimension[dimension];
 			jump = stride * pointsInDimension;
@@ -222,6 +453,54 @@ public class CombiGrid {
 			}
 		} // end loop over dimension 2 to d
 	}
+
+	/***
+	 * Hierarchizes the grid with a sequential optimized algorithm.
+	 * This method performs the entire hierarchization sequentially.
+	 */
+	public void hierarchizeOptimized(int blockSize) {
+		int dimension;
+		int start;
+		int stride = 1;
+		int pointsInDimension;
+		int numberOfPoles;
+		int jump;
+
+		//dimension 1 separate as start of each pole is easier to calculate
+		pointsInDimension = pointsPerDimension[0];
+		numberOfPoles = gridSize / pointsInDimension;
+		for (int i = 0; i < numberOfPoles; i++){
+			start = i * pointsInDimension;
+			hierarchize1DUnoptimized(start, 1, pointsInDimension, 0);
+		}
+
+		for (dimension = 1; dimension < dimensions; dimension++) { // hierarchize d >=1
+			stride *= pointsInDimension;
+			pointsInDimension = pointsPerDimension[dimension];
+			jump = stride * pointsInDimension;
+			numberOfPoles = gridSize / pointsInDimension;// do loop over first dim in 1d Parts
+
+			int i = 0;
+			while(i < numberOfPoles) {
+				int div = i / stride;
+				start = div * jump + (i % stride);
+				if(start + 4 < stride) {
+					hierarchize1DOptimized4(start, stride, pointsInDimension, dimension, blockSize);
+					i += 4;
+				}
+				
+				else if(start + 3 < stride) {
+					hierarchize1DOptimized3(start, stride, pointsInDimension, dimension, blockSize);
+				}
+
+				else {
+					hierarchize1DUnoptimized(start, stride, pointsInDimension, dimension);
+					i++;
+				}
+			}
+		}
+	}
+
 
 	/***
 	 * Hierarchizes the grid with a parallel unoptimized algorithm.
@@ -336,7 +615,7 @@ public class CombiGrid {
 						int start = div * jump + (j % stride);
 						hierarchize1DUnoptimized(start, stride, pointsInDimension, dimension);
 					}
-					
+
 					//Wait for all threads to be done with this dimension
 					try { barrier.await(); } catch (InterruptedException | BrokenBarrierException e) {}
 				} // end loop over dimension 2 to d
@@ -414,44 +693,44 @@ public class CombiGrid {
 	 * This method creates a pole object for each pole, and then uses the parallelStream() method to run all the poles
 	 * in parallel. All the parallelism is done by the Java framework.
 	 */
-//	public void hierarchizeUnoptimizedParallelStream() {
-//		int dimension;
-//		int start;
-//		int stride = 1;
-//		int pointsInDimension;
-//		int numberOfPoles;
-//		int jump;
-//		List<Pole> poles = new ArrayList<Pole>();
-//
-//
-//		//dimension 1 separate as start of each pole is easier to calculate
-//		pointsInDimension = pointsPerDimension[0];
-//		numberOfPoles = gridSize / pointsInDimension;
-//		for (int i = 0; i < numberOfPoles; i++){
-//			start = i * pointsInDimension;
-//			poles.add(new Pole(start, 1, pointsInDimension, 0));
-//		}
-//		// end dimension 1
-//		poles
-//		.parallelStream()
-//		.forEach(pole -> hierarchize1DUnoptimized(pole.start, pole.stride, pole.pointsInDimension, pole.dimension));
-//
-//		for(dimension = 1; dimension < dimensions; dimension++){ // hierarchize all dimensions
-//			poles.clear();
-//			stride *= pointsInDimension;
-//			pointsInDimension = pointsPerDimension[dimension];
-//			jump = stride * pointsInDimension;
-//			numberOfPoles = gridSize / pointsInDimension;
-//			for (int i = 0; i < numberOfPoles; i++){ // integer operations form bottleneck here -- nested loops are twice as slow
-//				int div = i / stride;
-//				start = div * jump + (i % stride);
-//				poles.add(new Pole(start, stride, pointsInDimension, dimension));
-//			}
-//			poles
-//			.parallelStream()
-//			.forEach(pole -> hierarchize1DUnoptimized(pole.start, pole.stride, pole.pointsInDimension, pole.dimension));
-//		} // end loop over dimension 2 to d
-//	}
+	//	public void hierarchizeUnoptimizedParallelStream() {
+	//		int dimension;
+	//		int start;
+	//		int stride = 1;
+	//		int pointsInDimension;
+	//		int numberOfPoles;
+	//		int jump;
+	//		List<Pole> poles = new ArrayList<Pole>();
+	//
+	//
+	//		//dimension 1 separate as start of each pole is easier to calculate
+	//		pointsInDimension = pointsPerDimension[0];
+	//		numberOfPoles = gridSize / pointsInDimension;
+	//		for (int i = 0; i < numberOfPoles; i++){
+	//			start = i * pointsInDimension;
+	//			poles.add(new Pole(start, 1, pointsInDimension, 0));
+	//		}
+	//		// end dimension 1
+	//		poles
+	//		.parallelStream()
+	//		.forEach(pole -> hierarchize1DUnoptimized(pole.start, pole.stride, pole.pointsInDimension, pole.dimension));
+	//
+	//		for(dimension = 1; dimension < dimensions; dimension++){ // hierarchize all dimensions
+	//			poles.clear();
+	//			stride *= pointsInDimension;
+	//			pointsInDimension = pointsPerDimension[dimension];
+	//			jump = stride * pointsInDimension;
+	//			numberOfPoles = gridSize / pointsInDimension;
+	//			for (int i = 0; i < numberOfPoles; i++){ // integer operations form bottleneck here -- nested loops are twice as slow
+	//				int div = i / stride;
+	//				start = div * jump + (i % stride);
+	//				poles.add(new Pole(start, stride, pointsInDimension, dimension));
+	//			}
+	//			poles
+	//			.parallelStream()
+	//			.forEach(pole -> hierarchize1DUnoptimized(pole.start, pole.stride, pole.pointsInDimension, pole.dimension));
+	//		} // end loop over dimension 2 to d
+	//	}
 
 	/***
 	 * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework.
@@ -461,50 +740,50 @@ public class CombiGrid {
 	 *
 	 * @param numberOfChunks The number of block objects to use
 	 */
-//	public void hierarchizeUnoptimizedParallelStream(int numberOfChunks) {
-//		int dimension;
-//		int stride = 1;
-//		int pointsInDimension;
-//		int numberOfPoles;
-//		int jump;
-//		int polesPerBlock;
-//		List<PoleBlock> blocks = new ArrayList<PoleBlock>();
-//
-//
-//		//dimension 1 separate as start of each pole is easier to calculate
-//		pointsInDimension = pointsPerDimension[0];
-//		numberOfPoles = gridSize / pointsInDimension;
-//		polesPerBlock = numberOfPoles / numberOfChunks;
-//
-//		for(int i = 0; i < numberOfChunks; i++) {
-//			int from = i * polesPerBlock;
-//			int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerBlock * (i + 1);
-//			blocks.add(new PoleBlock(this, 1, pointsInDimension, 0, pointsInDimension, from, to));
-//		}
-//
-//		blocks
-//		.parallelStream()
-//		.forEach(block -> block.hierarchize());
-//
-//		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
-//			blocks.clear();
-//			stride *= pointsInDimension;
-//			pointsInDimension = pointsPerDimension[dimension];
-//			jump = stride * pointsInDimension;
-//			numberOfPoles = gridSize / pointsInDimension;
-//			polesPerBlock = numberOfPoles / numberOfChunks;
-//			for(int i = 0; i < numberOfChunks; i++) {
-//				int from = i * polesPerBlock;
-//				int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerBlock * (i + 1);
-//				blocks.add(new PoleBlock(this, stride, pointsInDimension, dimension, jump, from, to));
-//			}
-//
-//			blocks
-//			.parallelStream()
-//			.forEach(block -> block.hierarchize());
-//		}
-//		// end loop over dimension 2 to d
-//	}
+	//	public void hierarchizeUnoptimizedParallelStream(int numberOfChunks) {
+	//		int dimension;
+	//		int stride = 1;
+	//		int pointsInDimension;
+	//		int numberOfPoles;
+	//		int jump;
+	//		int polesPerBlock;
+	//		List<PoleBlock> blocks = new ArrayList<PoleBlock>();
+	//
+	//
+	//		//dimension 1 separate as start of each pole is easier to calculate
+	//		pointsInDimension = pointsPerDimension[0];
+	//		numberOfPoles = gridSize / pointsInDimension;
+	//		polesPerBlock = numberOfPoles / numberOfChunks;
+	//
+	//		for(int i = 0; i < numberOfChunks; i++) {
+	//			int from = i * polesPerBlock;
+	//			int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerBlock * (i + 1);
+	//			blocks.add(new PoleBlock(this, 1, pointsInDimension, 0, pointsInDimension, from, to));
+	//		}
+	//
+	//		blocks
+	//		.parallelStream()
+	//		.forEach(block -> block.hierarchize());
+	//
+	//		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
+	//			blocks.clear();
+	//			stride *= pointsInDimension;
+	//			pointsInDimension = pointsPerDimension[dimension];
+	//			jump = stride * pointsInDimension;
+	//			numberOfPoles = gridSize / pointsInDimension;
+	//			polesPerBlock = numberOfPoles / numberOfChunks;
+	//			for(int i = 0; i < numberOfChunks; i++) {
+	//				int from = i * polesPerBlock;
+	//				int to = (i + 1 == numberOfChunks) ? numberOfPoles : polesPerBlock * (i + 1);
+	//				blocks.add(new PoleBlock(this, stride, pointsInDimension, dimension, jump, from, to));
+	//			}
+	//
+	//			blocks
+	//			.parallelStream()
+	//			.forEach(block -> block.hierarchize());
+	//		}
+	//		// end loop over dimension 2 to d
+	//	}
 
 	private int myPow2(int i) {
 		return 1 << i;
