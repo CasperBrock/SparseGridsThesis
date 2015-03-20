@@ -11,7 +11,15 @@ public class ScalingTest {
 	public static void main(String[] args) {
 		//int[] levels = {10, 6, 4, 3, 2};
 		printInfo();
-		
+		int[] levels = {5, 5, 5, 5, 5};
+		CombiGrid cg = new CombiGrid(levels);
+		CombiGridAligned cga = new CombiGridAligned(levels, 32);
+		test(cg, 10);
+		testOptimized(cg, 10);
+		testOptimized(cga, 10);
+		testThreads(cg, 5);
+		testOptimizedThreads(cg, 5);
+		testOptimizedThreads(cga, 5);
 		
 		//int[] levels = {6, 6, 6, 6, 6};
 		//CombiGrid cg = new CombiGrid(levels);
@@ -51,7 +59,6 @@ public class ScalingTest {
 			//testOptimizedParallelStreamChunks(cga, 10);
 		}
 		*/
-		testAllOptimized();
 	}
 	
 	private static void testAllUnoptimized() {
@@ -244,7 +251,7 @@ public class ScalingTest {
 		}
 	}
 	
-	private static void testOptimized(CombiGridAligned cg, int repititions) {
+	private static void testOptimized(CombiGrid cg, int repititions) {
 		long start;
 		long end;
 		double time;
@@ -252,6 +259,31 @@ public class ScalingTest {
 		double avgTime;
 
 		System.out.println("HierarchizeOptimized");
+		System.out.println("Run" + '\t' + "Time in ms");
+		
+		for(int run = 1; run <= 1; run++) {
+			totalTime = 0;
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimized(4);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + run + '\t' + avgTime);
+		}
+	}
+	
+	private static void testOptimized(CombiGridAligned cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeOptimized (non-aligned)");
 		System.out.println("Run" + '\t' + "Time in ms");
 		
 		for(int run = 1; run <= 1; run++) {
@@ -277,6 +309,32 @@ public class ScalingTest {
 		double avgTime;
 
 		System.out.println("HierarchizeUnoptimizedThreads");
+		System.out.println("Threads" + '\t' + "Time in ms");
+		
+		//Run for 1-32 threads
+		for(int threads = 1; threads <= 32; threads++) {
+			totalTime = 0;
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeUnoptimizedThreads(threads);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + threads + '\t' + avgTime);
+		}
+	}
+	
+	private static void testOptimizedThreads(CombiGrid cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeOptimizedThreads (non-aligned)");
 		System.out.println("Threads" + '\t' + "Time in ms");
 		
 		//Run for 1-32 threads
