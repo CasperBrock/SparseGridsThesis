@@ -9,20 +9,20 @@ import java.util.List;
 public class ScalingTest {
 
 	public static void main(String[] args) {
-		//int[] levels = {10, 6, 4, 3, 2};
+		int[] levels = {6, 6, 2, 4, 4};
 		printInfo();
 		
 		
-		int[] levels = {4, 4, 4, 4, 4};
-		//CombiGrid cg = new CombiGrid(levels);
+		int[] levels2 = {4, 4, 4, 4, 4};
+		CombiGrid cg = new CombiGrid(levels);
 		
-		CombiGridAligned cga = new CombiGridAligned(levels, 32);
+		CombiGridAligned cga = new CombiGridAligned(levels2, 32);
 		testRecursiveLinear(cga, 10);
 		cga=null;
 		System.gc();
 		
-		CombiGridAligned cga2 = new CombiGridAligned(levels, 32);
-		testRecursiveThreaded(cga2, 10);
+		CombiGridAligned cga2 = new CombiGridAligned(levels2, 32);
+		testRecursiveThreaded(cga2, 10, 4);
 		cga=null;
 		System.gc();
 		
@@ -244,7 +244,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeRecursiveThreads();
+				cg.hierarchizeRecursiveThreads(2);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -305,7 +305,7 @@ public class ScalingTest {
 		}
 	}
 	
-	private static void testRecursiveThreaded(CombiGridAligned cg, int repititions){
+	private static void testRecursiveThreaded(CombiGridAligned cg, int repititions, int NumberOfThreads){
 		long start;
 		long end;
 		double time;
@@ -320,7 +320,7 @@ public class ScalingTest {
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeRecursiveThreads();
+				cg.hierarchizeRecursiveThreads(NumberOfThreads);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;

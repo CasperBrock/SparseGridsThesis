@@ -6,7 +6,9 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.RecursiveAction;
 
 import gridFunctions.GridFunction;
 import gridFunctions.GridFunctions;
@@ -29,7 +31,7 @@ public class CombiGridAligned {
 	int recMinSpawn=17;
 
 	public static void main(String[] args) {
-		int[] levels = {10, 14};
+		int[] levels = {4, 4, 4};
 		CombiGridAligned grid = new CombiGridAligned(levels, 32);
 		CombiGridAligned grid2 = new CombiGridAligned(levels, 32);
 		System.out.println("Gridsize: " + grid.gridSize);
@@ -40,14 +42,14 @@ public class CombiGridAligned {
 		}*/
 		grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimized(4);
-		grid2.hierarchizeRecursiveThreads();
+		grid2.hierarchizeRecursiveThreads(2);
 		grid.setValues(GridFunctions.ALLONES);
 		grid.hierarchizeRecursive();
 		if (grid.compare(grid2)){
 			System.out.println("The grids are equal.");
 		} else System.out.println("not equal grids. check code.");
 		
-		//grid.printValues();
+		grid.printValues();
 		//grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimizedParallelStream(16, 1000);
 		//grid2.printValues();
@@ -879,9 +881,13 @@ public class CombiGridAligned {
 		}
 	}
 	
-	public void hierarchizeRecursiveThreads(){ //Overall threaded recursive call
+	public void hierarchizeRecursiveThreads(int NumberOfMaxThreads){ //Overall threaded recursive call
 		// this method starts the recursion, using the hierarchizeRec-call.
-
+		//It uses Javas inbuilt threaded recursion-system.
+		ForkJoinPool pool = new ForkJoinPool(NumberOfMaxThreads); //For starting and distributing the tasks.
+		
+		
+		
 		int centerInd[] = new int[dimensions];
 		Content fullInterval = new Content();
 		for(int i =0; i < dimensions; i++) {
@@ -892,14 +898,29 @@ public class CombiGridAligned {
 		fullInterval.l[6] = 0 ; // no predecessors to the left
 		fullInterval.l[7] = 0 ; // no predecessors to the right
 		int center = pos(centerInd);
-		hierarchizeRecThreads(0, dimensions, center, fullInterval);
-
+		
+		hierarchizeRecThreads HT = new hierarchizeRecThreads(0, dimensions, center, fullInterval);
+		pool.invoke(HT);
 	}
 	
-	public void hierarchizeRecThreads(int s, int t, int center, Content inputContent){
+	
+		
+	class hierarchizeRecThreads extends RecursiveAction{
+		private static final long serialVersionUID = 1L; //Needed for serialization internally in the Java forkjoin-framwork.
 		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
-
-		Content ic = copyContent(inputContent);
+		Content ic;
+		int s;
+		int t;
+		int center;
+		public hierarchizeRecThreads(int sInput, int tInput, int centerInput, Content inputContent){
+			ic = copyContent(inputContent);
+			t=tInput;
+			s=sInput;
+			center=centerInput;
+		};
+		
+		@Override
+		protected void compute(){ //This is the content of the recursive call.
 
 		// chosedim
 		int localSize = 0; // sum of levels
@@ -1048,6 +1069,7 @@ public class CombiGridAligned {
 			if(r > t) r = t;
 			if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
 			{ //It doesn't seem necessary to have this if/else?
+				
 				final int sFin = s;
 				final int rFin = r;
 				final int tFin = t;
@@ -1056,32 +1078,32 @@ public class CombiGridAligned {
 				final Content midFin = midI;
 				final Content leftFin = leftI;
 				final Content icFin = ic;
-
+				hierarchizeRecThreads HT1=null;
+				hierarchizeRecThreads HT4=null;
 				if(r > s) {
-					new Thread(new Runnable() { public void run() {
-						hierarchizeRecThreads(sFin, rFin, centerFin, midFin); 
-					}
-					});};
+					HT1= new hierarchizeRecThreads(sFin, rFin, centerFin, midFin); 
+					HT1.fork();
+				}
 
-					new Thread(new Runnable() { public void run() {
-						hierarchizeRecThreads(sFin, tFin, centerFin - distFin, leftFin);
-					}
-					});
+				hierarchizeRecThreads HT2 = new hierarchizeRecThreads(sFin, tFin, centerFin - distFin, leftFin);
+				hierarchizeRecThreads HT3= new hierarchizeRecThreads(sFin, tFin, centerFin + distFin, icFin);
 
-					new Thread(new Runnable() { public void run() {
-						hierarchizeRecThreads(sFin, tFin, centerFin + distFin, icFin);
-					}
-					});
+				if(t > r) {
+					HT4= new hierarchizeRecThreads(rFin, tFin, centerFin, midFin);
+
+				}
+				
+				if (r>s) HT1.fork();
+				HT2.fork();
+				HT3.fork();
+				if (t>r) HT4.fork();
+				if (r>s) HT1.join();
+				HT2.join();
+				HT3.join();
+				if (t>r) HT4.join();
 
 
-					if(t > r) {
-						new Thread(new Runnable() { public void run() {
-							hierarchizeRec(rFin, tFin, centerFin, midFin);
-						}
-						});};
-
-
-			} //Recursive threading stops here. The following line are for the last recursion.
+			} //Recursive threading stops here. The following lines are for the last recursion.
 
 			else {
 				if(r > s) hierarchizeRec(s, r, center, midI);
@@ -1090,6 +1112,9 @@ public class CombiGridAligned {
 				if(t > r) hierarchizeRec(r, t, center, midI);
 			}
 		}
+		}
+
+
 	}
 	
 	public void hierarchizeApplyStencil4v4(int center, int offset, boolean left, boolean right, int r ) {
