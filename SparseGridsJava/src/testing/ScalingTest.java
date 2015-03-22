@@ -363,7 +363,7 @@ public class ScalingTest {
 		double avgTime;
 		
 		System.out.println("RecursiveThreadedFindOptimalValues");
-		System.out.println("recMaxSpawn" +"\t"+ "RecMinSpawn"+"\t" + "Threads" + '\t'+ "Run" + '\t' +"recTile"+"\t"+ "Time in ms");
+		System.out.println("recMaxSpawn" +"\t"+ "RecMinSpawn"+"\t" + "Threads" + '\t' +"recTile"+"\t"+ "Time in ms");
 		int LevelSum = 0;
 		for (int l : cg.levels){
 			LevelSum += l;
@@ -374,7 +374,7 @@ public class ScalingTest {
 		int bestMax=0;
 		int bestTile=0;
 		int bestThreads=0;
-		System.out.println(LevelSum);
+		//System.out.println(LevelSum);
 
 		for(int run = 1; run <= 1; run++) {
 			totalTime = 0;
@@ -413,7 +413,7 @@ public class ScalingTest {
 								bestThreads=NumberOfThreads;
 								bestTile=cg.recTile;
 							}
-							System.out.println(cg.recMaxSpawn+"\t" +cg.recMinSpawn+"\t"+ NumberOfThreads+"\t"+run + '\t'+bestTile+"\t" + avgTime);
+							System.out.println(cg.recMaxSpawn+"\t" +cg.recMinSpawn+"\t"+ NumberOfThreads+ '\t'+bestTile+"\t" + avgTime);
 						}
 					}
 				}
