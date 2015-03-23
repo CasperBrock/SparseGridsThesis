@@ -9,20 +9,46 @@ import java.util.List;
 public class ScalingTest {
 
 	public static void main(String[] args) {
-		//int[] levels = {10, 6, 4, 3, 2};
+		int[] levels = {8, 6, 5, 3, 2};
 		printInfo();
-		int[] levels = {5, 5, 5, 5, 5};
-		CombiGrid cg = new CombiGrid(levels);
-		CombiGridAligned cga = new CombiGridAligned(levels, 32);
-		test(cg, 10);
-		testOptimized(cg, 10);
-		testOptimized(cga, 10);
-		testThreads(cg, 5);
-		testOptimizedThreads(cg, 5);
-		testOptimizedThreads(cga, 5);
-		
-		//int[] levels = {6, 6, 6, 6, 6};
+//		int[] levels = {5, 5, 5, 5, 5};
+//		CombiGrid cg = new CombiGrid(levels);
+//		CombiGridAligned cga = new CombiGridAligned(levels, 32);
+//		test(cg, 10);
+//		testOptimized(cg, 10);
+//		testOptimized(cga, 10);
+//		testThreads(cg, 5);
+//		testOptimizedThreads(cg, 5);
+//		testOptimizedThreads(cga, 5);
+//		
+//		int[] levels2 = {10, 10};
 		//CombiGrid cg = new CombiGrid(levels);
+		
+		
+		for (int i=20;i<31;i++) {
+			System.out.println("Now running on a grid of size "+ i);
+			CombiGridAligned cga = createAlignedGrid(i);
+			//CombiGridAligned cga = new CombiGridAligned(levels2, 32);
+			RecursiveThreadedFindOptimalValues(cga, 10, 5);
+			cga=null;
+			System.gc();
+		}
+//		CombiGridAligned cga = new CombiGridAligned(levels2, 32);
+//		testRecursiveLinear(cga, 10);
+//		cga=null;
+//		System.gc();
+//		
+//		cga = new CombiGridAligned(levels2, 32);
+//		testRecursiveThreaded(cga, 10, 4);
+//		cga=null;
+//		System.gc();
+//		
+//		cga = new CombiGridAligned(levels2, 32);
+//		testOptimizedThreads(cga, 4);
+//		cga=null;
+//		System.gc();
+		
+		
 		//CombiGridAligned cga = new CombiGridAligned(levels, 32);
 		//testAllUnoptimized();
 		//testAllOptimized();
@@ -59,6 +85,7 @@ public class ScalingTest {
 			//testOptimizedParallelStreamChunks(cga, 10);
 		}
 		*/
+		//testAllOptimized();
 	}
 	
 	private static void testAllUnoptimized() {
@@ -160,10 +187,12 @@ public class ScalingTest {
 		double avgTimeThreadsOnce;
 		double avgTimeTasks;
 		double avgTimeParallelStreamBlocks;
+		double avgTimeRecursive;
+		double avgTimeRecursiveThreads;
 		
 		System.out.println("Testing all Optimized");
 		//System.out.println("Gridsize" + '\t' + "Sequentiel" + '\t' + "Threads" + '\t' + "ThreadsOnce" + '\t' + "Tasks" + '\t' + "ParallelStreamChunks");
-		System.out.println("Gridsize" + '\t' + "Sequentiel" + '\t' + "Threads" + '\t' + "ThreadsOnce" + '\t' + "Tasks");
+		System.out.println("Gridsize" + '\t' + "Sequentiel" + '\t' + "Threads" + '\t' + "ThreadsOnce" + '\t' + "Tasks"+'\t'+"Recursive Linear"+'\t'+"Recursive Threaded");
 		
 		for(int size = 19; size <= 30; size++) {
 			CombiGridAligned cg = createAlignedGrid(size);
@@ -222,7 +251,30 @@ public class ScalingTest {
 //			}
 //			avgTimeParallelStreamBlocks = totalTime / 10;
 //			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks + '\t' + avgTimeParallelStreamBlocks);
-			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks);
+			
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeRecursive();
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeRecursive = totalTime / 10;
+
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeRecursiveThreads(2);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeRecursiveThreads = totalTime / 10;
+			
+			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks+'\t'+avgTimeRecursive+'\t'+avgTimeRecursiveThreads);
 		}
 	}
 
@@ -251,6 +303,131 @@ public class ScalingTest {
 		}
 	}
 	
+	private static void testRecursiveLinear(CombiGridAligned cg, int repititions){
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		
+		System.out.println("HierarchizeRecursiveLinear");
+		System.out.println("Run" + '\t' + "Time in ms");
+		
+		for(int run = 1; run <= 1; run++) {
+			totalTime = 0;
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeRecursive();
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + run + '\t' + avgTime);
+		}
+	}
+	
+	private static void testRecursiveThreaded(CombiGridAligned cg, int repititions, int NumberOfThreads){
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		
+		System.out.println("HierarchizeRecursiveThreaded");
+		System.out.println("Run" + '\t' + "Time in ms");
+		
+		for(int run = 1; run <= 1; run++) {
+			totalTime = 0;
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeRecursiveThreads(NumberOfThreads);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+				System.out.println(time);
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + run + '\t' + avgTime);
+		}
+	}
+	
+	private static void RecursiveThreadedFindOptimalValues(CombiGridAligned cg, int repititions, int MaxNumberOfThreads){
+		//This method will vary all the input variables of the recursive method, including number of threads up to the input, but also when to stop the recursion.
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		
+		System.out.println("RecursiveThreadedFindOptimalValues");
+		System.out.println("recMaxSpawn" +"\t"+ "RecMinSpawn"+"\t" + "Threads" + '\t' +"recTile"+"\t"+ "Time in ms");
+		int LevelSum = 0;
+		for (int l : cg.levels){
+			LevelSum += l;
+		}
+
+		double currentBestTime = Integer.MAX_VALUE;
+		int bestMin=0;
+		int bestMax=0;
+		int bestTile=0;
+		int bestThreads=0;
+		//System.out.println(LevelSum);
+
+		for(int run = 1; run <= 1; run++) {
+			totalTime = 0;
+			int NumberOfThreads=0;
+			cg.recTile=0;
+			cg.recMaxSpawn=1;
+			cg.recMinSpawn=0;
+			while (cg.recMaxSpawn < LevelSum){
+				cg.recMaxSpawn++;	
+
+				while(cg.recMinSpawn<cg.recMaxSpawn){
+					cg.recMinSpawn++;	
+
+					while (cg.recTile<cg.levels[0]) {
+						cg.recTile++;
+						NumberOfThreads=0;
+						while (NumberOfThreads<=MaxNumberOfThreads){
+							NumberOfThreads++; //Starts at zero, so will be 1 on first run.
+							totalTime=0;
+							for(int i = 0; i < repititions; i++) {
+
+								cg.setValues(GridFunctions.ALLONES);
+								start = System.currentTimeMillis();
+								cg.hierarchizeRecursiveThreads(NumberOfThreads);
+								end = System.currentTimeMillis();
+								time = end - start;
+								totalTime += time;
+								//System.gc();
+								//System.out.println(time); //Un-comment, to get each time output.
+							}
+							avgTime = totalTime / repititions;
+							if (avgTime < currentBestTime) {
+								currentBestTime=avgTime;
+								bestMin = cg.recMinSpawn;
+								bestMax = cg.recMaxSpawn;
+								bestThreads=NumberOfThreads;
+								bestTile=cg.recTile;
+							}
+							System.out.println(cg.recMaxSpawn+"\t" +cg.recMinSpawn+"\t"+ NumberOfThreads+ '\t'+bestTile+"\t" + avgTime);
+						}
+					}
+				}
+			}
+		}
+
+		System.out.println("Best values:");
+		System.out.println("Time:\t" + currentBestTime+" ms");
+		System.out.println("RecMinLevel:\t"+ bestMin);
+		System.out.println("RecMaxLevel:\t"+bestMax);
+		System.out.println("Threads:\t"+bestThreads);
+		System.out.println("RecTile:\t"+bestTile);
+	}
+	
 	private static void testOptimized(CombiGrid cg, int repititions) {
 		long start;
 		long end;
@@ -266,7 +443,7 @@ public class ScalingTest {
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimized(4);
+				//cg.hierarchizeOptimized();
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;

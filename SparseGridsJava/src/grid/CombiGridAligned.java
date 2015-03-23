@@ -6,7 +6,9 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.RecursiveAction;
 
 import gridFunctions.GridFunction;
 import gridFunctions.GridFunctions;
@@ -22,11 +24,13 @@ public class CombiGridAligned {
 	int noAligned;
 	int arraySize;
 	int[] strides; //used for the recursive code.
-	int recTile=9; //Some values are hard coded in the original.
-	double recTallPar=0.3;
+	public int recTile=5; //Some values are hard coded in the original.
+	public double recTallPar=0.3;
 	float [] rf; 
-	int recMaxSpawn=16;
-	int recMinSpawn=17;
+	public int recMaxSpawn=14; //Public, for varying within the test.
+	public int recMinSpawn=13; //Public, for varying within the test.
+
+
 
 	public static void main(String[] args) {		
 		int[] levels = {2, 2};
@@ -39,12 +43,15 @@ public class CombiGridAligned {
 			//grid.hierarchizeOptimized(4);
 		}*/
 		grid2.setValues(GridFunctions.ALLONES);
+		//grid2.hierarchizeOptimized(4);
+		grid2.hierarchizeRecursiveThreads(2);
 		grid2.hierarchizeOptimized(4);
 		grid.setValues(GridFunctions.ALLONES);
 		grid.hierarchizeRecursive();
 		if (grid.compare(grid2)){
 			System.out.println("The grids are equal.");
 		} else System.out.println("not equal grids. check code.");
+		grid.printValues();
 		 
 		//grid.printValues();
 		//grid2.setValues(GridFunctions.ALLONES);
@@ -71,7 +78,7 @@ public class CombiGridAligned {
 		gridSize = pointsPerDimension[0];
 		arraySize = noAligned;
 		strides = new int[dimensions+1];
-		strides[0] = 1;
+		strides[0]=1;
 		for (i = 1; i < dimensions; i++) {
 			this.levels[i] = levels[i];
 			pointsPerDimension[i] = myPow2(levels[i]) - 1;
@@ -707,10 +714,6 @@ public class CombiGridAligned {
 	}
 
 	private Content copyContent(Content inputContent){
-		//		Content outputContent = new Content();
-		//		outputContent.asInt=inputContent.asInt;
-		//		System.arraycopy(inputContent.l, 0, outputContent.l, 0, inputContent.l.length);
-
 		Content outputContent = new Content(inputContent.asInt, inputContent.l); 
 		return outputContent;
 	}
@@ -719,8 +722,6 @@ public class CombiGridAligned {
 		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
 
 		Content ic = copyContent(inputContent);
-		//Content ic = new Content();
-		//ic.asInt = interval;
 
 		// chosedim
 		int localSize = 0; // sum of levels
@@ -733,7 +734,7 @@ public class CombiGridAligned {
 		if(localSize == 0) { // singleton cache line
 			if(ic.l[0] <= 0) { // real singleton
 				for(int i = s; i < t; i++) { 
-					int rmask = myPow2(i); // was set to = (1 << i); //TODO Reconsider possible errors here. We need a 8-bit bitarray, right?
+					int rmask = myPow2(i);
 					int dist = myPow2(-ic.l[i]);
 					double lVal, rVal;
 					int posLeft, posRight;
@@ -853,8 +854,7 @@ public class CombiGridAligned {
 					maxl = (int) (rf[i] * ic.l[i]);
 				}
 			}
-			//Content midI = copyContent(inputContent);
-			//Content leftI = copyContent(inputContent); // ic used for right
+			// ic used for right
 			Content midI, leftI;
 			midI = copyContent(ic);
 			midI.l[r] = -midI.l[r];
@@ -869,12 +869,12 @@ public class CombiGridAligned {
 			if(r < s) r = s; // avoid calls!
 			if(r > t) r = t;
 			if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
-			{ 
-				if(r > s) hierarchizeRec(s, r, center, midI);
+			{
+				if(r > s) hierarchizeRec(s, r, center, midI); 
 				hierarchizeRec(s, t, center - dist, leftI);
 				hierarchizeRec(s, t, center + dist, ic);
 				if(t > r) hierarchizeRec(r, t, center, midI);
-			} 
+			}
 			
 			else {
 				if(r > s) hierarchizeRec(s, r, center, midI);
@@ -884,7 +884,242 @@ public class CombiGridAligned {
 			}
 		}
 	}
+	
+	public void hierarchizeRecursiveThreads(int NumberOfMaxThreads){ //Overall threaded recursive call
+		// this method starts the recursion, using the hierarchizeRec-call.
+		//It uses Javas inbuilt threaded recursion-system, which maintains a threadpool.
+		ForkJoinPool pool = new ForkJoinPool(NumberOfMaxThreads); //For starting and distributing the tasks.
+		
+		
+		
+		int centerInd[] = new int[dimensions];
+		Content fullInterval = new Content();
+		for(int i =0; i < dimensions; i++) {
+			fullInterval.l[i] = levels[i] - 1; // boundary need not be split away
+			centerInd[i] = myPow2(levels[i] - 1) - 1;
+		}
+		
+		fullInterval.l[6] = 0 ; // no predecessors to the left
+		fullInterval.l[7] = 0 ; // no predecessors to the right
+		int center = pos(centerInd);
+		
+		hierarchizeRecThreads HT = new hierarchizeRecThreads(0, dimensions, center, fullInterval);
+		pool.invoke(HT);
+	}
+	
+	
+		
+	class hierarchizeRecThreads extends RecursiveAction{
+		private static final long serialVersionUID = 1L; //Needed for serialization internally in the Java forkjoin-framwork.
+		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
+		Content ic;
+		int s;
+		int t;
+		int center;
+		public hierarchizeRecThreads(int sInput, int tInput, int centerInput, Content inputContent){
+			ic = copyContent(inputContent);
+			t=tInput;
+			s=sInput;
+			center=centerInput;
+		};
+		
+		@Override
+		protected void compute(){ //This is the content of the recursive call.
 
+		// chosedim
+		int localSize = 0; // sum of levels
+		for (int i = 1; i < dimensions; i++) {
+			if(ic.l[i] > 0) {
+				localSize += ic.l[i];
+			}
+		}
+
+		if(localSize == 0) { // singleton cache line
+			if(ic.l[0] <= 0) { // real singletons, t, center, inputContent
+				for(int i = s; i < t; i++) { 
+					int rmask = myPow2(i);
+					int dist = myPow2(-ic.l[i]);
+					double lVal, rVal;
+					int posLeft, posRight;
+					if((ic.l[6] & rmask) !=0) { //Checks if the bitwise combination equals to 1.
+						posLeft = center - dist*strides[i];
+						lVal = grid[posLeft];
+					}
+
+					else {
+						posLeft = -1;
+						lVal = 0.0;
+					}
+					
+					if((ic.l[7] & rmask) !=0) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+						posRight = center + dist*strides[i];
+						rVal = grid[posRight];
+					}
+
+					else {
+						posRight = -1;
+						rVal = 0.0;
+					}
+					
+					grid[center] = stencil(grid[center], lVal, rVal);
+				}
+			} 
+			
+			else {
+				if( s == 0 ) { // actually hierarchize in dir 0
+					int rmask = (1 << 0); // replace by iterative?
+					int dist = myPow2(ic.l[0]);
+					double leftBdVal, rightBdVal;
+					int leftBdPos, rightBdPos;
+					// hierarchize1DUnoptimized(CGIndex start, CGIndex stride, CGIndex size, int dim) does not fit because it never uses boundary
+					// if we don't split in dim0, we know we are at the boundary...
+					if((ic.l[6] & rmask) !=0) { //centerInd[i] - dist >= 0 ) { // it should be == -1, but hey
+						leftBdPos = center - dist;
+						leftBdVal = grid[leftBdPos];
+					}
+					
+					else {
+						leftBdPos = -1;
+						leftBdVal = 0.0;
+					}
+					
+					if((ic.l[7] & rmask) !=0) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+						rightBdPos = center + dist;
+						rightBdVal = grid[rightBdPos];
+					}
+					
+					else {
+						rightBdPos = -1;
+						rightBdVal = 0.0;
+					}
+					
+					int step = 1;
+					while(step < dist) {
+						int start = center - dist + step;
+
+						grid[(start)] = stencil(grid[start], leftBdVal, grid[(start + step)]);
+
+						start += 2*step;
+						while( start < center + dist - step ) {
+
+							grid[start] = stencil(grid[start],grid[start-step],grid[start+step]);
+							start += 2*step;
+						}
+						
+						assert( start == center+dist-step );
+						grid[start] = stencil(grid[start], grid[start-step], rightBdVal);
+						step *= 2;
+					}
+					// while of levels
+					grid[(center)] = stencil(grid[center], leftBdVal, rightBdVal);
+					s = 1; // hierarchized in dim 0
+				}
+				
+				int d0dist = myPow2(ic.l[0]);
+				int first = - d0dist +1;
+				int last = + d0dist -1;
+				for(int dim=s; dim<t; dim++) {
+					int rmask = (1 << dim); // replace by iterative?
+					int dist = myPow2(-ic.l[dim]);
+					assert(0== (center+first) %4 );
+					assert(2== (center+last) %4 );
+					if(((ic.l[6] & rmask)) !=0 && (ic.l[7] & rmask)!=0) {
+						for(int i = first; i <= last - 3; i += 4) {
+							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
+						}
+						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,true,dim);
+					}
+
+					if( (ic.l[6] & rmask)!=0 && (ic.l[7] & rmask)==0 ) {
+						for(int i=first; i<= last-3; i+= 4) {
+							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,false,dim);
+						}
+						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,false,dim);
+					}
+					if( (ic.l[6] & rmask)==0 && (ic.l[7] & rmask)!=0 ) {
+						for(int i=first; i<= last-3; i+= 4) {
+							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],false,true,dim);
+						}
+
+						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],false,true,dim);
+					} 
+				}
+			}
+		}
+		
+		else { 
+			int r=0;
+			//We added the cast to int in the following line.
+			int maxl=ic.l[0] - recTile - ((int) (recTallPar * localSize)); // block size of pseudo singletons, tall cache assumption. 
+			for(int i=1;i<dimensions;i++){
+				if( rf[i]*ic.l[i] > maxl ) {
+					r = i;
+					maxl = (int) (rf[i]*ic.l[i]);
+				}
+			}
+			// ic used for right
+			Content midI, leftI;
+			midI = copyContent(ic);
+			midI.l[r] = -midI.l[r];
+			ic.l[r]--;
+			int dist = myPow2(ic.l[r]); // already reduced!
+			//leftI.asInt = ic.asInt;
+			leftI = copyContent(ic);
+			int rmask = myPow2(r);
+			ic.l[6] |= rmask;
+			leftI.l[7] |= rmask;
+			dist *= strides[r]; // already reduced!
+			if(r < s) r = s; // avoid calls!
+			if(r > t) r = t;
+			if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
+			{ //It doesn't seem necessary to have this if/else?
+				
+				final int sFin = s;
+				final int rFin = r;
+				final int tFin = t;
+				final int centerFin = center;
+				final int distFin=dist;
+				final Content midFin = midI;
+				final Content leftFin = leftI;
+				final Content icFin = ic;
+				hierarchizeRecThreads HT1=null;
+				hierarchizeRecThreads HT4=null;
+				if(r > s) {
+					HT1= new hierarchizeRecThreads(sFin, rFin, centerFin, midFin); 
+				}
+
+				hierarchizeRecThreads HT2 = new hierarchizeRecThreads(sFin, tFin, centerFin - distFin, leftFin);
+				hierarchizeRecThreads HT3= new hierarchizeRecThreads(sFin, tFin, centerFin + distFin, icFin);
+
+				if(t > r) {
+					HT4= new hierarchizeRecThreads(rFin, tFin, centerFin, midFin);
+
+				}
+				
+				if (r>s) HT1.fork();
+				HT2.fork();
+				HT3.fork();
+				if (t>r) HT4.fork();
+				if (r>s) HT1.join();
+				HT2.join();
+				HT3.join();
+				if (t>r) HT4.join();
+
+
+			} //Recursive threading stops here. The following lines are for the last recursion.
+
+			else {
+				if(r > s) hierarchizeRec(s, r, center, midI);
+				hierarchizeRec(s, t, center - dist, leftI);
+				hierarchizeRec(s, t, center + dist, ic);
+				if(t > r) hierarchizeRec(r, t, center, midI);
+			}
+		}
+		}
+
+
+	}
+	
 	public void hierarchizeApplyStencil4v4(int center, int offset, boolean left, boolean right, int r ) {
 		double val1, val2, val3, val4, temp1 = 0.0, temp2 = 0.0, temp3 = 0.0, temp4 = 0.0,
 				right1 = 0.0, right2 = 0.0, right3 = 0.0, right4 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0, left4 = 0.0;

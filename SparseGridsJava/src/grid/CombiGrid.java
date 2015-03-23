@@ -37,6 +37,11 @@ public class CombiGrid {
 		//grid.hierarchizeUnoptimizedThreads(4);
 		//grid.printValues();
 		//grid2.printValues();
+		//int[] levels = {3, 3};
+		//CombiGrid grid = new CombiGrid(2, levels);
+		//Arrays.fill(grid.grid, 1.0);
+		//System.out.println("Array size is: " + grid.grid.length);
+		//grid.hierarchizeUnoptimized();
 		//grid.hierarchizeUnoptimizedThreads(8);
 		//grid.hierarchizeUnoptimizedThreadsOnce(8);
 		//grid.hierarchizeUnoptimizedTasks(100);
@@ -166,7 +171,10 @@ public class CombiGrid {
 			grid[start + offset * stride] -= 0.5 * grid[start + offset * stride + parOffsetStrided];
 			offset += stepSize;
 			left = 0.5 * grid[start + offset * stride - parOffsetStrided];
-			for (ctr = 1; ctr < steps - 1; ctr++) {					
+			for (ctr = 1; ctr < steps - 1; ctr++) {
+
+
+
 				val1 = grid[start + offset * stride];
 				right = 0.5 * grid[start + offset * stride + parOffsetStrided];
 				val2 = val1 - left;
@@ -437,12 +445,13 @@ public class CombiGrid {
 		//dimension 1 separate as start of each pole is easier to calculate
 		pointsInDimension = pointsPerDimension[0];
 		numberOfPoles = gridSize / pointsInDimension;
-		for (int i = 0; i < numberOfPoles; i++) {
+		for (int i = 0; i < numberOfPoles; i++){
 			start = i * pointsInDimension;
 			hierarchize1DUnoptimized(start, 1, pointsInDimension, 0);
-		} // end dimension 1
+		}
+		// end dimension 1
 
-		for(dimension = 1; dimension < dimensions; dimension++) { // hierarchize all dimensions
+		for(dimension = 1; dimension < dimensions; dimension++){ // hierarchize all dimensions
 			stride *= pointsInDimension;
 			pointsInDimension = pointsPerDimension[dimension];
 			jump = stride * pointsInDimension;
@@ -450,7 +459,6 @@ public class CombiGrid {
 			for (int i = 0; i < numberOfPoles; i++){ // integer operations form bottleneck here -- nested loops are twice as slow
 				int div = i / stride;
 				start = div * jump + (i % stride);
-				//System.out.println("Start: " + start + '\t' + "Stride: " + stride);
 				hierarchize1DUnoptimized(start, stride, pointsInDimension, dimension);
 			}
 		} // end loop over dimension 2 to d
@@ -492,7 +500,7 @@ public class CombiGrid {
 				hierarchize1DOptimized4(start, stride, pointsInDimension, dimension, blockSize);
 				i += blockSize;
 			}
-			
+
 			while(i < numberOfPoles) {
 				int div = i / stride;
 				start = div * jump + (i % stride);
@@ -531,7 +539,6 @@ public class CombiGrid {
 			}
 		}
 	}
-
 
 	/***
 	 * Hierarchizes the grid with a parallel unoptimized algorithm.
@@ -660,7 +667,7 @@ public class CombiGrid {
 						int start = div * jump + (j % s);
 						hierarchize1DUnoptimized(start, s, n, d);
 					}*/
-					
+
 					int k = 0;
 					for (int j = from; j < to; j++) { //loops over blocks, inside loop we multiply loop variable with blockSize
 						k = j * blockSize;
@@ -671,7 +678,7 @@ public class CombiGrid {
 					}
 
 					k = to * blockSize;
-					
+
 					if(threadNum == numberOfThreads - 1 && rem > 0) {
 						while(k < p) {
 							int div = k / s;
