@@ -29,7 +29,7 @@ public class ScalingTest {
 			System.out.println("Now running on a grid of size "+ i);
 			CombiGridAligned cga = createAlignedGrid(i);
 			//CombiGridAligned cga = new CombiGridAligned(levels2, 32);
-			RecursiveThreadedFindOptimalValues(cga, 10, 5);
+			RecursiveThreadedFindOptimalValues(cga, 10, 32);
 			cga=null;
 			System.gc();
 		}*/
@@ -364,9 +364,9 @@ public class ScalingTest {
 		
 		System.out.println("RecursiveThreadedFindOptimalValues");
 		System.out.println("recMaxSpawn" +"\t"+ "RecMinSpawn"+"\t" + "Threads" + '\t' +"recTile"+"\t"+ "Time in ms");
-		int LevelSum = 0;
+		int LevelMax = 0;
 		for (int l : cg.levels){
-			LevelSum += l;
+			if (l>LevelMax) LevelMax = l; //For varying the recMin and recMax.
 		}
 
 		double currentBestTime = Integer.MAX_VALUE;
@@ -374,26 +374,24 @@ public class ScalingTest {
 		int bestMax=0;
 		int bestTile=0;
 		int bestThreads=0;
-		//System.out.println(LevelSum);
-
-		for(int run = 1; run <= 1; run++) {
 			totalTime = 0;
-			int NumberOfThreads=0;
+			int NumberOfThreads=1;
 			cg.recTile=0;
 			cg.recMaxSpawn=1;
 			cg.recMinSpawn=0;
-			while (cg.recMaxSpawn < LevelSum){
-				cg.recMaxSpawn++;	
+			
+			for (cg.recMaxSpawn++; cg.recMaxSpawn<=LevelMax;cg.recMaxSpawn++){ //TODO Check logic after merge - never goes above 2. 
+				cg.recMinSpawn=0;
+				
+				for (cg.recMinSpawn++;cg.recMinSpawn<cg.recMaxSpawn;cg.recMinSpawn++){
+					cg.recTile=0;
 
-				while(cg.recMinSpawn<cg.recMaxSpawn){
-					cg.recMinSpawn++;	
-
-					while (cg.recTile<cg.levels[0]) {
-						cg.recTile++;
+					for (cg.recTile++;cg.recTile<cg.levels[0];cg.recTile++) { //recTile set to max lvl in dim 0, according to paper. 
 						NumberOfThreads=0;
-						while (NumberOfThreads<=MaxNumberOfThreads){
-							NumberOfThreads++; //Starts at zero, so will be 1 on first run.
+						
+						for (NumberOfThreads++;NumberOfThreads<=MaxNumberOfThreads;NumberOfThreads++){	
 							totalTime=0;
+							
 							for(int i = 0; i < repititions; i++) {
 
 								cg.setValues(GridFunctions.ALLONES);
@@ -402,7 +400,7 @@ public class ScalingTest {
 								end = System.currentTimeMillis();
 								time = end - start;
 								totalTime += time;
-								//System.gc();
+								System.gc();
 								//System.out.println(time); //Un-comment, to get each time output.
 							}
 							avgTime = totalTime / repititions;
@@ -418,7 +416,7 @@ public class ScalingTest {
 					}
 				}
 			}
-		}
+		
 
 		System.out.println("Best values:");
 		System.out.println("Time:\t" + currentBestTime+" ms");
