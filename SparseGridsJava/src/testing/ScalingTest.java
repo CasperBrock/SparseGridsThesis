@@ -9,14 +9,14 @@ import java.util.List;
 public class ScalingTest {
 
 	public static void main(String[] args) {
-		int[] levels = {8, 6, 5, 3, 2};
+		//int[] levels = {8, 6, 5, 3, 2};
 		printInfo();
-//		int[] levels = {5, 5, 5, 5, 5};
-//		CombiGrid cg = new CombiGrid(levels);
-//		CombiGridAligned cga = new CombiGridAligned(levels, 32);
-//		test(cg, 10);
-//		testOptimized(cg, 10);
-//		testOptimized(cga, 10);
+		int[] levels = {5, 5, 5, 5, 5};
+		CombiGrid cg = new CombiGrid(levels);
+		CombiGridAligned cga = new CombiGridAligned(levels, 32);
+		test(cg, 10);
+		testOptimized(cg, 10);
+		testOptimized(cga, 10);
 //		testThreads(cg, 5);
 //		testOptimizedThreads(cg, 5);
 //		testOptimizedThreads(cga, 5);
@@ -25,14 +25,14 @@ public class ScalingTest {
 		//CombiGrid cg = new CombiGrid(levels);
 		
 		
-		for (int i=20;i<31;i++) {
+		/*for (int i=20;i<31;i++) {
 			System.out.println("Now running on a grid of size "+ i);
 			CombiGridAligned cga = createAlignedGrid(i);
 			//CombiGridAligned cga = new CombiGridAligned(levels2, 32);
 			RecursiveThreadedFindOptimalValues(cga, 10, 5);
 			cga=null;
 			System.gc();
-		}
+		}*/
 //		CombiGridAligned cga = new CombiGridAligned(levels2, 32);
 //		testRecursiveLinear(cga, 10);
 //		cga=null;
@@ -435,21 +435,21 @@ public class ScalingTest {
 		double totalTime;
 		double avgTime;
 
-		System.out.println("HierarchizeOptimized");
-		System.out.println("Run" + '\t' + "Time in ms");
+		System.out.println("HierarchizeOptimized (non-aligned)");
+		System.out.println("Blocksize" + '\t' + "Time in ms");
 		
-		for(int run = 1; run <= 1; run++) {
+		for(int blocksize = 4; blocksize <= 2048; blocksize *= 2) {
 			totalTime = 0;
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				//cg.hierarchizeOptimized();
+				cg.hierarchizeOptimized(blocksize);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
 			}
 			avgTime = totalTime / repititions;
-			System.out.println("" + run + '\t' + avgTime);
+			System.out.println("" + blocksize + '\t' + avgTime);
 		}
 	}
 	
@@ -460,21 +460,21 @@ public class ScalingTest {
 		double totalTime;
 		double avgTime;
 
-		System.out.println("HierarchizeOptimized (non-aligned)");
-		System.out.println("Run" + '\t' + "Time in ms");
+		System.out.println("HierarchizeOptimized (aligned)");
+		System.out.println("Blocksize" + '\t' + "Time in ms");
 		
-		for(int run = 1; run <= 1; run++) {
+		for(int blocksize = 4; blocksize <= 32; blocksize *= 2) {
 			totalTime = 0;
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimized(32);
+				cg.hierarchizeOptimized(blocksize);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
 			}
 			avgTime = totalTime / repititions;
-			System.out.println("" + run + '\t' + avgTime);
+			System.out.println("" + blocksize + '\t' + avgTime);
 		}
 	}
 
