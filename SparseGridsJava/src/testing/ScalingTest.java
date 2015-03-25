@@ -90,7 +90,7 @@ public class ScalingTest {
 		//testAllOptimized();
 	}
 	
-	private static void testAllUnoptimized() {
+	private static void testAllNonAligned() {
 		long start;
 		long end;
 		double time;
@@ -101,10 +101,14 @@ public class ScalingTest {
 		double avgTimeTasks;
 		double avgTimeParallelStream;
 		double avgTimeParallelStreamBlocks;
+		double avgTimeOptimized;
+		double avgTimeOptimizedThreads;
+		double avgTimeNoUnroll;
+		double avgTimeOptimizedThreadsNoUnroll;
 		
 		System.out.println("Testing all Unoptimized");
 		//System.out.println("Gridsize" + '\t' + "Sequentiel" + '\t' + "Threads" + '\t' + "ThreadsOnce" + '\t' + "Tasks" + '\t' + "ParallelStream" + '\t' + "ParallelStreamChunks");
-		System.out.println("Gridsize" + '\t' + "Sequentiel" + '\t' + "Threads" + '\t' + "ThreadsOnce" + '\t' + "Tasks");
+		System.out.println("Gridsize" + '\t' + "Sequentiel" + '\t' + "Threads" + '\t' + "ThreadsOnce" + '\t' + "Tasks" + '\t' + "Optimized" + '\t' + "OptimizedThreads" + '\t' + "OptimizedNoUnroll" + '\t' + "avgTimeOptimizedThreadsNoUnroll");
 		for(int size = 19; size <= 30; size++) {
 			CombiGrid cg = createGrid(size);
 			totalTime = 0;
@@ -151,6 +155,50 @@ public class ScalingTest {
 			}
 			avgTimeTasks = totalTime / 10;
 			
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimized();
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeOptimized = totalTime / 10;
+			
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreads(16);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeOptimizedThreads = totalTime / 10;
+			
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedNoUnroll();
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeNoUnroll = totalTime / 10;
+			
+			totalTime = 0;
+			for(int i = 0; i < 10; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreadsNoUnroll(16);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTimeOptimizedThreadsNoUnroll = totalTime / 10;
+			
 //			totalTime = 0;
 //			for(int i = 0; i < 10; i++) {
 //				cg.setValues(GridFunctions.ALLONES);
@@ -173,7 +221,7 @@ public class ScalingTest {
 //			}
 //			avgTimeParallelStreamBlocks = totalTime / 10;
 //			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks + '\t' + avgTimeParallelStream + '\t' + avgTimeParallelStreamBlocks);
-			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks);
+			System.out.println("" + size + '\t' + avgTime + '\t' + avgTimeThreads + '\t' + avgTimeThreadsOnce + '\t' + avgTimeTasks + '\t' + avgTimeOptimized + '\t' + avgTimeOptimizedThreads + '\t' + avgTimeNoUnroll + '\t' + avgTimeOptimizedThreadsNoUnroll);
 			cg = null;
 			System.gc();
 		}
