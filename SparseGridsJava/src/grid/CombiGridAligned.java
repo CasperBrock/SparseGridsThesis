@@ -1095,7 +1095,7 @@ public class CombiGridAligned {
 						HT4= new hierarchizeRecThreads(rFin, tFin, centerFin, midFin);
 					}
 
-					if (r>s) HT1.fork();
+					if (r>s) HT1.fork(); //Put at the end. Note that Java does not currently seem to support optimization of tailrecursion.
 					HT2.fork();
 					HT3.fork();
 					if (t>r) HT4.fork();
@@ -1105,7 +1105,7 @@ public class CombiGridAligned {
 					if (t>r) HT4.join();
 
 
-				} //Recursive threading stops here. The following lines are for the last recursion.
+				} //Recursive threading stops here. The following lines are for the last recursions.
 
 				else {
 					if(r > s) hierarchizeRec(s, r, center, midI);
