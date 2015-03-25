@@ -17,9 +17,11 @@ public class ScalingTest {
 		test(cg, 10);
 		testOptimized(cg, 10);
 		testOptimized(cga, 10);
-//		testThreads(cg, 5);
-//		testOptimizedThreads(cg, 5);
-//		testOptimizedThreads(cga, 5);
+		testOptimizedNoUnroll(cg, 10);
+		testThreads(cg, 10);
+		testOptimizedThreads(cg, 10);
+		testOptimizedThreads(cga, 10);
+		testOptimizedThreadsNoUnroll(cg, 10);
 //		
 //		int[] levels2 = {10, 10};
 		//CombiGrid cg = new CombiGrid(levels);
@@ -200,7 +202,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimized(16);
+				cg.hierarchizeOptimized();
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -211,7 +213,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimizedThreads(16, 16);
+				cg.hierarchizeOptimizedThreads(16);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -434,20 +436,45 @@ public class ScalingTest {
 		double avgTime;
 
 		System.out.println("HierarchizeOptimized (non-aligned)");
-		System.out.println("Blocksize" + '\t' + "Time in ms");
+		System.out.println("Run" + '\t' + "Time in ms");
 		
-		for(int blocksize = 4; blocksize <= 2048; blocksize *= 2) {
+		for(int run = 1; run <= 1; run++) {
 			totalTime = 0;
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimized(blocksize);
+				cg.hierarchizeOptimized();
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
 			}
 			avgTime = totalTime / repititions;
-			System.out.println("" + blocksize + '\t' + avgTime);
+			System.out.println("" + run + '\t' + avgTime);
+		}
+	}
+	
+	private static void testOptimizedNoUnroll(CombiGrid cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeOptimizedNoUnroll (non-aligned)");
+		System.out.println("Run" + '\t' + "Time in ms");
+		
+		for(int run = 1; run <= 1; run++) {
+			totalTime = 0;
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedNoUnroll();
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + run + '\t' + avgTime);
 		}
 	}
 	
@@ -459,20 +486,20 @@ public class ScalingTest {
 		double avgTime;
 
 		System.out.println("HierarchizeOptimized (aligned)");
-		System.out.println("Blocksize" + '\t' + "Time in ms");
+		System.out.println("Run" + '\t' + "Time in ms");
 		
-		for(int blocksize = 4; blocksize <= 32; blocksize *= 2) {
+		for(int run = 1; run <= 1; run++) {
 			totalTime = 0;
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimized(blocksize);
+				cg.hierarchizeOptimized();
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
 			}
 			avgTime = totalTime / repititions;
-			System.out.println("" + blocksize + '\t' + avgTime);
+			System.out.println("" + run + '\t' + avgTime);
 		}
 	}
 
@@ -487,7 +514,7 @@ public class ScalingTest {
 		System.out.println("Threads" + '\t' + "Time in ms");
 		
 		//Run for 1-32 threads
-		for(int threads = 1; threads <= 32; threads++) {
+		for(int threads = 1; threads <= 8; threads++) {
 			totalTime = 0;
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
@@ -513,12 +540,38 @@ public class ScalingTest {
 		System.out.println("Threads" + '\t' + "Time in ms");
 		
 		//Run for 1-32 threads
-		for(int threads = 1; threads <= 32; threads++) {
+		for(int threads = 1; threads <= 8; threads++) {
 			totalTime = 0;
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeUnoptimizedThreads(threads);
+				cg.hierarchizeOptimizedThreads(threads);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + threads + '\t' + avgTime);
+		}
+	}
+	
+	private static void testOptimizedThreadsNoUnroll(CombiGrid cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeOptimizedThreadsNoUnroll (non-aligned)");
+		System.out.println("Threads" + '\t' + "Time in ms");
+		
+		//Run for 1-32 threads
+		for(int threads = 1; threads <= 8; threads++) {
+			totalTime = 0;
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreadsNoUnroll(threads);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -539,12 +592,12 @@ public class ScalingTest {
 		System.out.println("Threads" + '\t' + "Time in ms");
 		
 		//Run for 1-32 threads
-		for(int threads = 1; threads <= 32; threads++) {
+		for(int threads = 1; threads <= 8; threads++) {
 			totalTime = 0;
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimizedThreads(32, threads);
+				cg.hierarchizeOptimizedThreads(threads);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;

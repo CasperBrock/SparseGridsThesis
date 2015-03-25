@@ -25,7 +25,7 @@ public class Verification {
 		test1 = true;
 		for(int i = 1; i < 16; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			test.hierarchizeOptimized(i * 4);
+			test.hierarchizeOptimized();
 			test1 = test1 && real.compare(test);
 		}
 
@@ -36,7 +36,7 @@ public class Verification {
 		test2 = true;
 		for(int i = 1; i < 16; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			test.hierarchizeOptimized(i * 4);
+			test.hierarchizeOptimized();
 			test2 = test2 && real.compare(test);
 		}
 
@@ -47,7 +47,7 @@ public class Verification {
 		test3 = true;
 		for(int i = 1; i < 16; i++) {
 			test.setValues(GridFunctions.ALLONES);
-			test.hierarchizeOptimized(i * 4);
+			test.hierarchizeOptimized();
 			test3 = test3 && real.compare(test);
 		}
 
@@ -64,7 +64,7 @@ public class Verification {
 
 		real = new CombiGridAligned(levels1, 32);
 		real.setValues(GridFunctions.ALLONES);
-		real.hierarchizeOptimized(4);
+		real.hierarchizeOptimized();
 		test = new CombiGridAligned(levels1, 32);
 		test1 = true;
 		for(int i = 1; i < 16; i++) {
@@ -75,7 +75,7 @@ public class Verification {
 
 		real = new CombiGridAligned(levels2, 32);
 		real.setValues(GridFunctions.ALLONES);
-		real.hierarchizeOptimized(4);
+		real.hierarchizeOptimized();
 		test = new CombiGridAligned(levels2, 32);
 		test2 = true;
 		for(int i = 1; i < 16; i++) {
@@ -86,7 +86,7 @@ public class Verification {
 
 		real = new CombiGridAligned(levels3, 32);
 		real.setValues(GridFunctions.ALLONES);
-		real.hierarchizeOptimized(4);
+		real.hierarchizeOptimized();
 		test = new CombiGridAligned(levels3, 32);
 		test3 = true;
 		for(int i = 1; i < 16; i++) {

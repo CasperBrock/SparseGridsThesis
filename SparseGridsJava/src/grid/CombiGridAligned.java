@@ -33,7 +33,7 @@ public class CombiGridAligned {
 
 
 	public static void main(String[] args) {		
-		int[] levels = {2, 2};
+		int[] levels = {5, 5, 5, 5, 5};
 		CombiGridAligned grid = new CombiGridAligned(levels, 32);
 		CombiGridAligned grid2 = new CombiGridAligned(levels, 32);
 		System.out.println("Gridsize: " + grid.gridSize);
@@ -44,14 +44,14 @@ public class CombiGridAligned {
 		}*/
 		grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimized(4);
-		grid2.hierarchizeRecursiveThreads(2);
-		grid2.hierarchizeOptimized(4);
+		//grid2.hierarchizeRecursiveThreads(2);
+		grid2.hierarchizeOptimizedThreads(32);
 		grid.setValues(GridFunctions.ALLONES);
 		grid.hierarchizeRecursive();
 		if (grid.compare(grid2)){
 			System.out.println("The grids are equal.");
 		} else System.out.println("not equal grids. check code.");
-		grid.printValues();
+		//grid2.printValues();
 		 
 		//grid.printValues();
 		//grid2.setValues(GridFunctions.ALLONES);
@@ -370,7 +370,7 @@ public class CombiGridAligned {
 		} // end PoleLoop for level 2
 	}
 
-	public void hierarchizeOptimized(int blockSize) {
+	public void hierarchizeOptimized() {
 		int start;
 		int stride = 1;
 		int pointsInDimension;
@@ -388,6 +388,7 @@ public class CombiGridAligned {
 			stride *= pointsInDimension;
 			pointsInDimension = pointsPerDimension[dimension];
 			jump = stride * pointsInDimension;
+			int blockSize = stride;
 			numberOfPoles = arraySize / pointsInDimension;// do loop over first dim in 1d Parts
 
 			for (int i = 0; i < numberOfPoles; i += blockSize){ // integer operations form bottleneck here -- nested loops are twice as slow
@@ -398,7 +399,7 @@ public class CombiGridAligned {
 		}
 	}
 
-	public void hierarchizeOptimizedThreads(final int blockSize, int numberOfThreads) {
+	public void hierarchizeOptimizedThreads(final int numberOfThreads) {
 		int dimension;
 		int stride = 1;
 		int pointsInDimension;
@@ -435,6 +436,7 @@ public class CombiGridAligned {
 			pointsInDimension = pointsPerDimension[dimension];
 			final int jump = stride * pointsInDimension;
 			numberOfPoles = arraySize / pointsInDimension;
+			final int blockSize = stride;
 			numberOfBlocks = numberOfPoles / blockSize;
 			blocksPerThread = numberOfBlocks / numberOfThreads;
 			polesPerThread = numberOfPoles / numberOfThreads;
