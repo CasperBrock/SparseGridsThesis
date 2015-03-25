@@ -376,49 +376,49 @@ public class ScalingTest {
 		int bestMax=0;
 		int bestTile=0;
 		int bestThreads=0;
-			totalTime = 0;
-			int NumberOfThreads=1;
-			cg.recTile=0;
-			cg.recMaxSpawn=1;
+		totalTime = 0;
+		int NumberOfThreads=1;
+		cg.recTile=0;
+		cg.recMaxSpawn=1;
+		cg.recMinSpawn=0;
+
+		for (cg.recMaxSpawn++; cg.recMaxSpawn<=LevelMax;cg.recMaxSpawn++){ //TODO Check logic after merge - never goes above 2. 
 			cg.recMinSpawn=0;
-			
-			for (cg.recMaxSpawn++; cg.recMaxSpawn<=LevelMax;cg.recMaxSpawn++){ //TODO Check logic after merge - never goes above 2. 
-				cg.recMinSpawn=0;
-				
-				for (cg.recMinSpawn++;cg.recMinSpawn<cg.recMaxSpawn;cg.recMinSpawn++){
-					cg.recTile=0;
 
-					for (cg.recTile++;cg.recTile<cg.levels[0];cg.recTile++) { //recTile set to max lvl in dim 0, according to paper. 
-						NumberOfThreads=0;
-						
-						for (NumberOfThreads++;NumberOfThreads<=MaxNumberOfThreads;NumberOfThreads++){	
-							totalTime=0;
-							
-							for(int i = 0; i < repititions; i++) {
+			for (cg.recMinSpawn++;cg.recMinSpawn<cg.recMaxSpawn;cg.recMinSpawn++){
+				cg.recTile=0;
 
-								cg.setValues(GridFunctions.ALLONES);
-								start = System.currentTimeMillis();
-								cg.hierarchizeRecursiveThreads(NumberOfThreads);
-								end = System.currentTimeMillis();
-								time = end - start;
-								totalTime += time;
-								System.gc();
-								//System.out.println(time); //Un-comment, to get each time output.
-							}
-							avgTime = totalTime / repititions;
-							if (avgTime < currentBestTime) {
-								currentBestTime=avgTime;
-								bestMin = cg.recMinSpawn;
-								bestMax = cg.recMaxSpawn;
-								bestThreads=NumberOfThreads;
-								bestTile=cg.recTile;
-							}
-							System.out.println(cg.recMaxSpawn+"\t" +cg.recMinSpawn+"\t"+ NumberOfThreads+ '\t'+bestTile+"\t" + avgTime);
+				for (cg.recTile++;cg.recTile<cg.levels[0];cg.recTile++) { //recTile set to max lvl in dim 0, according to paper. 
+					NumberOfThreads=0;
+
+					for (NumberOfThreads++;NumberOfThreads<=MaxNumberOfThreads;NumberOfThreads++){	
+						totalTime=0;
+
+						for(int i = 0; i < repititions; i++) {
+
+							cg.setValues(GridFunctions.ALLONES);
+							start = System.currentTimeMillis();
+							cg.hierarchizeRecursiveThreads(NumberOfThreads);
+							end = System.currentTimeMillis();
+							time = end - start;
+							totalTime += time;
+							System.gc();
+							//System.out.println(time); //Un-comment, to get each time output.
 						}
+						avgTime = totalTime / repititions;
+						if (avgTime < currentBestTime) {
+							currentBestTime=avgTime;
+							bestMin = cg.recMinSpawn;
+							bestMax = cg.recMaxSpawn;
+							bestThreads=NumberOfThreads;
+							bestTile=cg.recTile;
+						}
+						System.out.println(cg.recMaxSpawn+"\t" +cg.recMinSpawn+"\t"+ NumberOfThreads+ '\t'+bestTile+"\t" + avgTime);
 					}
 				}
 			}
-		
+		}
+
 
 		System.out.println("Best values:");
 		System.out.println("Time:\t" + currentBestTime+" ms");
