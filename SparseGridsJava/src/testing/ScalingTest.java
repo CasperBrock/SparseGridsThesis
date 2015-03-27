@@ -382,18 +382,18 @@ public class ScalingTest {
 		cg.recMaxSpawn=1;
 		cg.recMinSpawn=0;
 
-		for (cg.recMaxSpawn++; cg.recMaxSpawn<=LevelMax;cg.recMaxSpawn++){ //TODO Check logic after merge - never goes above 2. 
+		for (cg.recMaxSpawn++; cg.recMaxSpawn<=LevelMax;cg.recMaxSpawn++){
 			cg.recMinSpawn=0;
 
 			for (cg.recMinSpawn++;cg.recMinSpawn<cg.recMaxSpawn;cg.recMinSpawn++){
 				cg.recTile=0;
 
-				for (cg.recTile++;cg.recTile<cg.levels[0];cg.recTile++) { //recTile set to max lvl in dim 0, according to paper. 
+				for (cg.recTile++;cg.recTile<=cg.levels[0];cg.recTile++) { //recTile set to max lvl in dim 0, according to paper. 
 					NumberOfThreads=0;
 
 					for (NumberOfThreads++;NumberOfThreads<=MaxNumberOfThreads;NumberOfThreads++){	
 						totalTime=0;
-
+						
 						for(int i = 0; i < repititions; i++) {
 
 							cg.setValues(GridFunctions.ALLONES);
