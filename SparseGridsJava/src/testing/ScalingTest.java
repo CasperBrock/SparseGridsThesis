@@ -22,6 +22,7 @@ public class ScalingTest {
 		testOptimizedThreads(cg, 10);
 		testOptimizedThreads(cga, 10);
 		testOptimizedThreadsNoUnroll(cg, 10);
+		testAllNonAligned();
 //		
 //		int[] levels2 = {10, 10};
 		//CombiGrid cg = new CombiGrid(levels);
