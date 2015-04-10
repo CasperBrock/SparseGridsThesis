@@ -31,7 +31,7 @@ var rf:Array[Float]=Array(0);
 //Main. Use to launch.
 def main(args: Array[String]): Unit = {
   
-		levels= Array(2,2,2);
+		levels= Array(2, 2, 2);
 		CombiGrid(levels);
 		FillArrayWithOnes(grid);
 		hierarchizeRecursive();
@@ -41,11 +41,11 @@ def main(args: Array[String]): Unit = {
 		//pointsPerDimension.foreach(l => print(""+l+'\t'))
 
 
-		levels= Array(2,2,2);
+		levels= Array(2, 2, 2);
 		CombiGrid(levels);
 		FillArrayWithOnes(grid);
     hierarchizeUnoptimized();  
-		PrintArray(grid);
+		//PrintArray(grid);
 		//println(gridSize)
 		//pointsPerDimension.foreach(l => print(""+l+'\t'))
 
@@ -159,7 +159,6 @@ for(dimension <- 1 to dimensions-1){ // hierarchize all dimensions
 	for (i <- 0 to numberOfPoles-1){ // integer operations form bottleneck here -- nested loops are twice as slow
 		val div = i / stride;
 		start = div * jump + (i % stride);
-		//System.out.println("Start: " + start + '\t' + "Stride: " + stride);
 		hierarchize1DUnoptimized(start, stride, pointsInDimension, dimension);
 	}
 } // end loop over dimension 2 to d
@@ -195,7 +194,7 @@ for(l <- level-1 to 2 by -1) {
 	grid(start + offset * stride) -= right;
 	//steps = steps >> 1;
 	steps = steps / 2;
-	offset = myPow2(levels(dimension) - level) - 1;
+	offset = myPow2(levels(dimension) - l) - 1;
 	parentOffset =  stepSize;
 	//stepSize = stepSize << 1;
 	stepSize = stepSize * 2;
@@ -223,8 +222,9 @@ def hierarchizeRecursive(){
   hierarchizeRec(0, dimensions, center, fullInterval);
 }
 
-def hierarchizeRec(s:Int,t:Int, center:Int, interval:Content){//Actual recursion method.
-	var ic:Content = interval;
+def hierarchizeRec(si:Int, t:Int, center:Int, interval:Content) {//Actual recursion method.
+	var s = si
+  var ic:Content = interval;
   var localSize = 0; //Set's sum of levels, to determine size.
   for (i <- 1 to dimensions-1) {
 	  if(ic.l(i) > 0) {
@@ -288,7 +288,7 @@ if(localSize == 0) { // singleton cache line
 			var step = 1;
 			while(step < dist) {
 				var start = center - dist + step;
-        System.out.println("Center: " + center + '\t' + "Dist: " + dist + '\t' + "Step: " + step + '\t' + "Start: " + start);
+        //System.out.println("Center: " + center + '\t' + "Dist: " + dist + '\t' + "Step: " + step + '\t' + "Start: " + start);
 				grid(start) = stencil(grid(start), leftBdVal, grid(start + step), true, true);
 				start += 2*step;
 				while( start < center + dist - step ) {
@@ -301,7 +301,7 @@ if(localSize == 0) { // singleton cache line
 			}
 			// while of levels
 			grid(center) = stencil(grid(center), leftBdVal, rightBdVal, true, true);
-			var s = 1; // hierarchized in dim 0
+			s = 1; // hierarchized in dim 0
 		}
 		var d0dist = myPow2(ic.l(0));
 		var first = - d0dist +1;
@@ -370,11 +370,15 @@ else {
 	//if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
 	//{ //It doesn't seem necessary to have this if/else?
 		if(r > s) {
-			hierarchizeRec(s,r,center,midI);
+      System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + center + '\t' + "Mid");
+			hierarchizeRec(s, r, center, midI);
 		}
+    System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + (center-dist) + '\t' + "Left");
 		hierarchizeRec(s, t, center - dist, leftI);
+    System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + (center+dist) + '\t' + "Right");
 		hierarchizeRec(s, t, center + dist, ic);
 		if(t > r) {
+      System.out.println("r: " + r + '\t' + "t: " + t + '\t' + "center: " + center + '\t' + "Mid");
 			hierarchizeRec(r, t, center, midI);
 		}
 	//}
