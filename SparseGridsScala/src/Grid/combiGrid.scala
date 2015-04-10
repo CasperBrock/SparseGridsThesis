@@ -30,7 +30,7 @@ var rf:Array[Float]=Array(0);
 
 //Main. Use to launch.
 def main(args: Array[String]): Unit = {
-
+  
 		levels= Array(2,2,2);
 		CombiGrid(levels);
 		FillArrayWithOnes(grid);
@@ -41,12 +41,12 @@ def main(args: Array[String]): Unit = {
 		//pointsPerDimension.foreach(l => print(""+l+'\t'))
 
 
-		levels= Array(5,5,5,5);
+		levels= Array(2,2,2);
 		CombiGrid(levels);
 		FillArrayWithOnes(grid);
     hierarchizeUnoptimized();  
 		PrintArray(grid);
-		println(gridSize)
+		//println(gridSize)
 		//pointsPerDimension.foreach(l => print(""+l+'\t'))
 
 }
@@ -288,6 +288,7 @@ if(localSize == 0) { // singleton cache line
 			var step = 1;
 			while(step < dist) {
 				var start = center - dist + step;
+        System.out.println("Center: " + center + '\t' + "Dist: " + dist + '\t' + "Step: " + step + '\t' + "Start: " + start);
 				grid(start) = stencil(grid(start), leftBdVal, grid(start + step), true, true);
 				start += 2*step;
 				while( start < center + dist - step ) {
@@ -313,19 +314,29 @@ if(localSize == 0) { // singleton cache line
 			if(((ic.l(6) & rmask)) !=0 && (ic.l(7) & rmask)!=0) {
 				for(i <- first to last by 1) {
 					var offset=dist*strides(dim);
-					grid(center+i)=stencil(center+i, center-offset, center+offset, true, true); 
+          //System.out.println("Center: " + center + '\t' + "Offset: " + offset + '\t' + "i: " + i + '\t' + "Left " + '\t' + "Right");
+          //System.out.println("Grid before: " + grid(center+i));
+					grid(center+i) = stencil(grid(center+i), grid(center-offset+i), grid(center+offset+i), true, true); 
+          //System.out.println("Grid after: " + grid(center+i));
 				}
 			}
 			if( (ic.l(6) & rmask)!=0 && (ic.l(7) & rmask)==0 ) {
 				for(i <- first to last by 1) {
 					var offset=dist*strides(dim);
-					grid(center+i) = stencil(center+i,center-offset,center+offset, true, false);
+          //System.out.println("Center: " + center + '\t' + "Offset: " + offset + '\t' + "i: " + i + '\t' + "Left");
+          //System.out.println("Grid before: " + grid(center+i));
+					grid(center+i) = stencil(grid(center+i), grid(center-offset+i), 0, true, false);
+          //System.out.println("Grid after: " + grid(center+i));
 				}
 			}
 			if( (ic.l(6) & rmask)==0 && (ic.l(7) & rmask)!=0 ) {
 				for(i <- first to last by 1) {
 					var offset=dist*strides(dim);
-					grid(center+i) = stencil(center+i,center-offset,center+offset,false,true);
+          //System.out.println("Center: " + center + '\t' + "Offset: " + offset + '\t' + "i: " + i + '\t' + "Right");
+          //System.out.println("Grid before: " + grid(center+i));
+          //System.out.println("Grid pos " + (center+offset+i) + ": " + grid(center+offset+i));
+					grid(center+i) = stencil(grid(center+i), 0, grid(center+offset+i), false, true);
+          //System.out.println("Grid after: " + grid(center+i));
 				}
 			} 
 		}
@@ -345,7 +356,7 @@ else {
 	var midI:Content= new Content();
 	midI.copy(ic.l);
 	midI.l(r) = -midI.l(r);
-	ic.l(r)-1;
+	ic.l(r) = ic.l(r) - 1;
 	var dist = myPow2(ic.l(r)); // already reduced!
 	//leftI.asInt = ic.asInt;
 	var leftI:Content=new Content();
@@ -356,8 +367,8 @@ else {
 	dist *= strides(r); // already reduced!
 	if(r < s) r = s; // avoid calls!
 	if(r > t) r = t;
-	if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
-	{ //It doesn't seem necessary to have this if/else?
+	//if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
+	//{ //It doesn't seem necessary to have this if/else?
 		if(r > s) {
 			hierarchizeRec(s,r,center,midI);
 		}
@@ -366,7 +377,7 @@ else {
 		if(t > r) {
 			hierarchizeRec(r, t, center, midI);
 		}
-	}
+	//}
 }
 }
 
