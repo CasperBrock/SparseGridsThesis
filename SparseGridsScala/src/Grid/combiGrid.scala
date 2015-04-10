@@ -31,7 +31,7 @@ var rf:Array[Float]=Array(0);
 //Main. Use to launch.
 def main(args: Array[String]): Unit = {
 
-		levels= Array(2,2);
+		levels= Array(2,2,2);
 		CombiGrid(levels);
 		FillArrayWithOnes(grid);
 		hierarchizeRecursive();
@@ -77,8 +77,8 @@ def CombiGrid(levelsInput: Array[Int]){
   var size = 1;
 	for (i <- 1 to dimensions-1) {
 		pointsPerDimension(i) = myPow2(levels(i)) - 1;
-		gridSize *= pointsPerDimension(i);
 		strides(i) = gridSize;
+    gridSize *= pointsPerDimension(i);
 	}
 	strides(dimensions)=gridSize;
 	grid = new ParArray[Double](gridSize);
