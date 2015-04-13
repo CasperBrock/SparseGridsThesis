@@ -22,7 +22,7 @@ public class CombiGrid {
 	public static void main(String[] args) {
 		//int[] levels = {3, 3, 3, 3, 3};
 		//CombiGrid grid = new CombiGrid(levels);
-		int[] levels = {5, 5, 5, 5, 5};
+		int[] levels = {3, 3};
 		CombiGrid grid = new CombiGrid(levels);
 		CombiGrid grid2 = new CombiGrid(levels);
 		System.out.println("Gridsize: " + grid.gridSize);
@@ -31,7 +31,8 @@ public class CombiGrid {
 
 		grid2.setValues(GridFunctions.ALLONES);
 		grid2.hierarchizeUnoptimized();
-
+		grid2.printValues();
+		
 		if(grid2.compare(grid))
 			System.out.println("Grids are equal");
 		//grid.hierarchizeUnoptimizedThreads(4);
@@ -533,7 +534,6 @@ public class CombiGrid {
 			for (int i = 0; i < numberOfPoles; i++){ // integer operations form bottleneck here -- nested loops are twice as slow
 				int div = i / stride;
 				start = div * jump + (i % stride);
-				//System.out.println("Start: " + start + '\t' + "Stride: " + stride);
 				hierarchize1DUnoptimized(start, stride, pointsInDimension, dimension);
 			}
 		} // end loop over dimension 2 to d

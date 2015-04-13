@@ -33,11 +33,11 @@ public class CombiGridAligned {
 
 
 	public static void main(String[] args) {		
-		int[] levels = {5, 5, 5, 5, 5};
+		int[] levels = {3, 3, 3};
 		CombiGridAligned grid = new CombiGridAligned(levels, 32);
 		CombiGridAligned grid2 = new CombiGridAligned(levels, 32);
-		System.out.println("Gridsize: " + grid.gridSize);
-		System.out.println("Arraysize: " + grid.arraySize);
+		//System.out.println("Gridsize: " + grid.gridSize);
+		//System.out.println("Arraysize: " + grid.arraySize);
 		/*for(int i = 0; i < 10000; i++) {
 			//grid.setValues(GridFunctions.ALLONES);
 			//grid.hierarchizeOptimized(4);
@@ -53,7 +53,7 @@ public class CombiGridAligned {
 		} else System.out.println("not equal grids. check code.");
 		//grid2.printValues();
 		 
-		//grid.printValues();
+		grid.printValues();
 		//grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimizedParallelStream(16, 1000);
 		//grid2.printValues();
@@ -711,7 +711,7 @@ public class CombiGridAligned {
 		fullInterval.l[6] = 0 ; // no predecessors to the left
 		fullInterval.l[7] = 0 ; // no predecessors to the right
 		int center = pos(centerInd);
-		hierarchizeRec(0, dimensions, center, fullInterval);
+		hierarchizeRec(0, dimensions, center, fullInterval, 1);
 
 	}
 
@@ -720,7 +720,7 @@ public class CombiGridAligned {
 		return outputContent;
 	}
 
-	public void hierarchizeRec(int s, int t, int center, Content inputContent){
+	public void hierarchizeRec(int s, int t, int center, Content inputContent, int level){
 		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
 
 		Content ic = copyContent(inputContent);
@@ -824,22 +824,27 @@ public class CombiGridAligned {
 					assert(2== (center+last) %4 );
 					if(((ic.l[6] & rmask) !=0) && ((ic.l[7] & rmask) !=0)) {
 						for(int i = first; i <= last - 3; i += 4) {
+							//System.out.println("Center: " + center + '\t' + "i: " + i + '\t' + "Right + Left");
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
 						}
+						 //System.out.println("Center: " + center + '\t' + "i: " + (last-2) + '\t' + "Right + Left");
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,true,dim);
 					}
 
 					if(((ic.l[6] & rmask) !=0) && ((ic.l[7] & rmask) ==0)) {
 						for(int i=first; i<= last-3; i+= 4) {
+							//System.out.println("Center: " + center + '\t' + "i: " + i + '\t' + "Right");
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,false,dim);
 						}
+						//System.out.println("Center: " + center + '\t' + "i: " + (last-2) + '\t' + "Right");
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,false,dim);
 					}
 					if(((ic.l[6] & rmask) == 0) && ((ic.l[7] & rmask) !=0)) {
 						for(int i=first; i<= last-3; i+= 4) {
+							//System.out.println("Center: " + center + '\t' + "i: " + i + '\t' + "Left");
 							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],false,true,dim);
 						}
-
+						//System.out.println("Center: " + center + '\t' + "i: " + (last-2) + '\t' + "Left");
 						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],false,true,dim);
 					} 
 				}
@@ -856,6 +861,10 @@ public class CombiGridAligned {
 					maxl = (int) (rf[i] * ic.l[i]);
 				}
 			}
+			//System.out.println();
+			//System.out.println("r: " + r);
+			//ic.printInterval();
+			//System.out.println();
 			// ic used for right
 			Content midI, leftI;
 			midI = copyContent(ic);
@@ -872,17 +881,21 @@ public class CombiGridAligned {
 			if(r > t) r = t;
 			if((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && (r != 0))
 			{
-				if(r > s) hierarchizeRec(s, r, center, midI); 
-				hierarchizeRec(s, t, center - dist, leftI);
-				hierarchizeRec(s, t, center + dist, ic);
-				if(t > r) hierarchizeRec(r, t, center, midI);
+				if(r > s) {System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + center + '\t' + "Mid"); hierarchizeRec(s, r, center, midI, level + 1); }
+				System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + (center-dist) + '\t' + "Left");
+				hierarchizeRec(s, t, center - dist, leftI, level + 1);
+				System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + (center+dist) + '\t' + "Right");
+				hierarchizeRec(s, t, center + dist, ic, level + 1);
+				if(t > r) {System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + center + '\t' + "Mid"); hierarchizeRec(r, t, center, midI, level + 1); }
 			}
 			
 			else {
-				if(r > s) hierarchizeRec(s, r, center, midI);
-				hierarchizeRec(s, t, center - dist, leftI);
-				hierarchizeRec(s, t, center + dist, ic);
-				if(t > r) hierarchizeRec(r, t, center, midI);
+				if(r > s) {/*System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + center + '\t' + "Mid" + '\t' + "Level: " + level);*/ hierarchizeRec(s, r, center, midI, level + 1); }
+				//System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + (center-dist) + '\t' + "Left" + '\t' + "Level: " + level);
+				hierarchizeRec(s, t, center - dist, leftI, level + 1);
+				//System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + (center+dist) + '\t' + "Right" + '\t' + "Level: " + level);
+				hierarchizeRec(s, t, center + dist, ic, level + 1);
+				if(t > r) {/*System.out.println("r: " + r + '\t' + "t: " + t + '\t' + "center: " + center + '\t' + "Mid" + '\t' + "Level: " + level);*/ hierarchizeRec(r, t, center, midI, level + 1); }
 			}
 		}
 	}
@@ -1110,10 +1123,10 @@ public class CombiGridAligned {
 				} //Recursive threading stops here. The following lines are for the last recursions.
 
 				else {
-					if(r > s) hierarchizeRec(s, r, center, midI);
-					hierarchizeRec(s, t, center - dist, leftI);
-					hierarchizeRec(s, t, center + dist, ic);
-					if(t > r) hierarchizeRec(r, t, center, midI);
+					if(r > s) hierarchizeRec(s, r, center, midI, 0);
+					hierarchizeRec(s, t, center - dist, leftI, 0);
+					hierarchizeRec(s, t, center + dist, ic, 0);
+					if(t > r) hierarchizeRec(r, t, center, midI, 0);
 				}
 			}
 		}

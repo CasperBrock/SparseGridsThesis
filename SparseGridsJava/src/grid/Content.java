@@ -13,4 +13,11 @@ public class Content { //object for holding both int and array.
 		asInt = asIntInput;
 		System.arraycopy(lInput, 0, l, 0, lInput.length);
 	}
+	
+	public void printInterval() {
+		System.out.print("" + l[0]);
+		for(int i = 1; i < 8; i++)
+			System.out.print(", " + l[i]);
+		System.out.println();
+	}
 }
