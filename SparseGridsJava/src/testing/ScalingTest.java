@@ -99,8 +99,8 @@ public class ScalingTest {
 		double avgTimeThreads;
 		double avgTimeThreadsOnce;
 		double avgTimeTasks;
-		double avgTimeParallelStream;
-		double avgTimeParallelStreamBlocks;
+		//double avgTimeParallelStream;
+		//double avgTimeParallelStreamBlocks;
 		double avgTimeOptimized;
 		double avgTimeOptimizedThreads;
 		double avgTimeNoUnroll;
@@ -236,7 +236,7 @@ public class ScalingTest {
 		double avgTimeThreads;
 		double avgTimeThreadsOnce;
 		double avgTimeTasks;
-		double avgTimeParallelStreamBlocks;
+		//double avgTimeParallelStreamBlocks;
 		double avgTimeRecursive;
 		double avgTimeRecursiveThreads;
 		
@@ -272,7 +272,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimizedThreadsOnce(16, 16);
+				cg.hierarchizeOptimizedThreadsOnce(16);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -283,7 +283,7 @@ public class ScalingTest {
 			for(int i = 0; i < 10; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimizedTasks(16, 16);
+				cg.hierarchizeOptimizedTasks(16);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -719,7 +719,7 @@ public class ScalingTest {
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimizedThreadsOnce(32, threads);
+				cg.hierarchizeOptimizedThreadsOnce(threads);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
@@ -771,7 +771,7 @@ public class ScalingTest {
 			for(int i = 0; i < repititions; i++) {
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeOptimizedTasks(32, tasks);
+				cg.hierarchizeOptimizedTasks(tasks);
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
