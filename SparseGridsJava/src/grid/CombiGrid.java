@@ -1,6 +1,7 @@
 package grid;
 
 import gridFunctions.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
@@ -100,6 +101,22 @@ public class CombiGrid {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Returns a string of the level vector for the grid as well as the size of the vector
+	 * 
+	 * @return String describing the level vector of the grid
+	 */
+	public String getLevels() {
+		StringBuilder s = new StringBuilder();
+		int sum = 0;
+		for(int i : levels) {
+			sum += i;
+			s.append("" +  i + " ");
+		}
+		s.append("[" + sum + "]");
+		return s.toString();
 	}
 
 	/**

@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveAction;
+
 import gridFunctions.GridFunction;
 import gridFunctions.GridFunctions;
 
@@ -127,6 +128,22 @@ public class CombiGridAligned {
 			}
 		}
 	}
+	
+	/**
+	 * Returns a string of the level vector for the grid as well as the size of the vector
+	 * 
+	 * @return String describing the level vector of the grid
+	 */
+	public String getLevels() {
+		StringBuilder s = new StringBuilder();
+		int sum = 0;
+		for(int i : levels) {
+			sum += i;
+			s.append("" +  i + " ");
+		}
+		s.append("[" + sum + "]");
+		return s.toString();
+	}
 
 	/**
 	 * Compares this grid with another CombiGridAligned. Grids are considered equal
@@ -214,7 +231,7 @@ public class CombiGridAligned {
 	 * @param size How many points to hierachize
 	 * @param dimension The dimension to work in
 	 */
-	public void hierarchize1DUnoptimized(int start, int stride, int size, int dimension) {
+	private void hierarchize1DUnoptimized(int start, int stride, int size, int dimension) {
 		int level, steps, ctr, offset, parentOffset, stepsize, parOffsetStrided;
 		double val1, val2, val3, left, right;
 
@@ -264,7 +281,7 @@ public class CombiGridAligned {
 	 * @param dimension The dimension to work in
 	 * @param unroll How far we can continue in the grid. Must be a multiple of 4
 	 */
-	public void hierarchize1DOptimized(int start, int stride, int size,
+	private void hierarchize1DOptimized(int start, int stride, int size,
 			int dimension, int unroll) {
 		int level;
 		int steps;
