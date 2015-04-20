@@ -2,14 +2,15 @@ package Grid
 
 
 
-
+import scala.concurrent._
 import scala.collection.Parallel
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.parallel.mutable.ParSeq
 import scala.collection.parallel.mutable.ParArray
+import scala.util.Success
 
 object CombiGrid {
-
+	//TODO thread the unidirectional as in parallelstream (divide each poleblock into a thread.)
 
 	//global variables:
 	var levels:Array[Int] = Array(0);
@@ -31,31 +32,32 @@ var rf:Array[Float]=Array(0);
 //Main. Use to launch.
 def main(args: Array[String]): Unit = {
 
-		levels = Array(5, 5, 5, 5, 5);
-    CombiGrid(levels);
-		FillArrayWithOnes(grid);
-		hierarchizeRecursive();
-    var grid2 = new ParArray[Double](grid.size)
-    for(i <- 0 to grid.size - 1)
-      grid2(i) = grid(i)
-		//hierarchizeUnoptimized();  
-		//PrintArray(grid);
-		//println(gridSize)
-		//pointsPerDimension.foreach(l => print(""+l+'\t'))
-
-
-		//levels= Array(5, 5, 5, 5, 5);
+		levels = Array(2,2,2);
 		CombiGrid(levels);
 		FillArrayWithOnes(grid);
-		hierarchizeUnoptimized();  
-		//PrintArray(grid);
-		//println(gridSize)
-		//pointsPerDimension.foreach(l => print(""+l+'\t'))
-    
-    if(compare(grid2))
-      System.out.println("Grids are equal")
-    else
-      System.out.println("Grid are not equal!")
+		//hierarchizeRecursive();
+		hierarchizeRecursiveThreaded();
+		var grid2 = new ParArray[Double](grid.size)
+				for(i <- 0 to grid.size - 1)
+					grid2(i) = grid(i)
+					//hierarchizeUnoptimized();  
+					PrintArray(grid);
+						//println(gridSize)
+						//pointsPerDimension.foreach(l => print(""+l+'\t'))
+
+
+						//levels= Array(5, 5, 5, 5, 5);
+						CombiGrid(levels);
+						FillArrayWithOnes(grid);
+						hierarchizeUnoptimized();  
+						PrintArray(grid);
+						//println(gridSize)
+						//pointsPerDimension.foreach(l => print(""+l+'\t'))
+
+						if(compare(grid2))
+							System.out.println("Grids are equal")
+							else
+								System.out.println("Grid are not equal!")
 
 }
 
@@ -230,10 +232,228 @@ var center = pos(centerInd);
 hierarchizeRec(0, dimensions, center, fullInterval, 1);
 }
 
-def hierarchizeRec(si:Int, t:Int, center:Int, interval:Content, level:Int) {//Actual recursion method.
-	var s = si
-			var ic = new Content();
-  ic.copy(interval.l)
+def hierarchizeRecursiveThreaded(){
+	// this method starts the recursion, using the hierarchizeRec-call.
+
+	var centerInd:Array[Int] = new Array[Int](dimensions);
+var fullInterval:Content = new Content();
+for(i <- 0 to dimensions-1 by 1) {
+	fullInterval.l(i) = levels(i) - 1; // boundary need not be split away
+	centerInd(i) = myPow2(levels(i) - 1) - 1;
+}
+
+fullInterval.l(6) = 0 ; // no predecessors to the left
+fullInterval.l(7) = 0 ; // no predecessors to the right
+var center = pos(centerInd);
+val H = new hierRecThreads(0, dimensions, center, fullInterval, 1);
+H.run()
+}
+
+class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) extends Runnable {
+
+
+	//For running in threads
+	override def run(){
+		val level = leveli;
+		var s=si;
+		val ic = new Content();
+		ic.copy(interval.l)
+		val t=ti;
+		val center= centeri;
+		var localSize = 0; //Set's sum of levels, to determine size.
+		for (i <- 1 to dimensions-1) {
+			if(ic.l(i) > 0) {
+				localSize += ic.l(i);
+			}
+		}
+
+		if(localSize == 0) { // singleton cache line
+			if(ic.l(0) <= 0) { // real singletons, t, center, inputContent
+				println("s = " + s + ", t = " + t)
+				for(i <- s to t-1 by 1) { 
+					var rmask = myPow2(i);
+					var dist = myPow2(-ic.l(i));
+					System.out.println(dist);
+					var lVal:Double=0; //don't define before using.
+					var rVal:Double=0; //doubles - define at first use instead.
+					//var posLeft, posRight; //integers
+					if((ic.l(6) & rmask)!=0) { //Checks if the bitwise combination equals to 1.
+						var posLeft = center - dist*strides(i);
+						var lVal = grid(posLeft);
+					}
+					else {
+						var posLeft = -1;
+						var lVal = 0.0;
+					}
+					if((ic.l(7) & rmask) !=0) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+						var posRight = center + dist*strides(i);
+						var rVal = grid(posRight);
+					}
+					else {
+						var posRight = -1;
+						var rVal = 0.0;
+					}
+					grid(center) = stencil(grid(center), lVal, rVal, true, true);
+				}
+			} 
+			else {
+				if( s == 0 ) { // actually hierarchize in dir 0
+					var rmask = (1 << 0); // replace by iterative?
+					var dist = myPow2(ic.l(0));
+					var leftBdVal:Double=0.0;
+					var rightBdVal:Double=0.0;
+					var leftBdPos:Int = 0;
+					var rightBdPos:Int =0;
+					// hierarchize1DUnoptimized(CGIndex start, CGIndex stride, CGIndex size, int dim) does not fit because it never uses boundary
+					// if we don't split in dim0, we know we are at the boundary...
+					if((ic.l(6) & rmask) !=0) { //centerInd[i] - dist >= 0 ) { // it should be == -1, but hey
+						leftBdPos = center - dist;
+						leftBdVal = grid(leftBdPos);
+					}
+					else {
+						leftBdPos = -1;
+						leftBdVal = 0.0;
+					}
+					if((ic.l(7) & rmask) !=0) { //centerInd[i] + dist < n[i] ) { // it should be == n[i], but hey
+						rightBdPos = center + dist;
+						rightBdVal = grid(rightBdPos);
+					}
+					else {
+						rightBdPos = -1;
+						rightBdVal = 0.0;
+					}
+					var step = 1;
+					while(step < dist) {
+						var start = center - dist + step;
+						//System.out.println("Center: " + center + '\t' + "Dist: " + dist + '\t' + "Step: " + step + '\t' + "Start: " + start);
+						grid(start) = stencil(grid(start), leftBdVal, grid(start + step), true, true);
+						start += 2*step;
+						while( start < center + dist - step ) {
+							grid(start) = stencil(grid(start),grid(start-step),grid(start+step), true, true);
+							start += 2*step;
+						}
+						assert( start == center+dist-step );
+						grid(start) = stencil(grid(start), grid(start-step), rightBdVal, true, true);
+						step *= 2;
+					}
+					// while of levels
+					grid(center) = stencil(grid(center), leftBdVal, rightBdVal, true, true);
+					s = 1; // hierarchized in dim 0
+				}
+				var d0dist = myPow2(ic.l(0));
+				var first = - d0dist +1;
+				var last = + d0dist -1;
+				println(s + " " + t)
+				for(dim <- s to t-1 by 1) {
+					var rmask = (1 << dim); // replace by iterative?
+					var dist = myPow2(-ic.l(dim));
+					//assert(0== (center+first) %4 );
+					//assert(2== (center+last) %4 );
+					if(((ic.l(6) & rmask)) !=0 && (ic.l(7) & rmask)!=0) {
+						for(i <- first to last by 1) {
+							var offset=dist*strides(dim);
+							//System.out.println("Center: " + center + '\t' + "Offset: " + offset + '\t' + "i: " + i + '\t' + "Left " + '\t' + "Right");
+							//System.out.println("Grid before: " + grid(center+i));
+							grid(center+i) = stencil(grid(center+i), grid(center-offset+i), grid(center+offset+i), true, true); 
+							//System.out.println("Grid after: " + grid(center+i));
+						}
+					}
+					if( (ic.l(6) & rmask)!=0 && (ic.l(7) & rmask)==0 ) {
+						for(i <- first to last by 1) {
+							var offset=dist*strides(dim);
+							//System.out.println("Center: " + center + '\t' + "Offset: " + offset + '\t' + "i: " + i + '\t' + "Left");
+							//System.out.println("Grid before: " + grid(center+i));
+							grid(center+i) = stencil(grid(center+i), grid(center-offset+i), 0, true, false);
+							//System.out.println("Grid after: " + grid(center+i));
+						}
+					}
+					if( (ic.l(6) & rmask)==0 && (ic.l(7) & rmask)!=0 ) {
+						for(i <- first to last by 1) {
+							var offset=dist*strides(dim);
+							//            System.out.println("Center: " + center + '\t' + "Offset: " + offset + '\t' + "i: " + i + '\t' + "Right");
+							//            System.out.println("Grid before: " + grid(center+i));
+							//            System.out.println("Grid pos " + (center+offset+i) + ": " + grid(center+offset+i));
+							grid(center+i) = stencil(grid(center+i), 0, grid(center+offset+i), false, true);
+							//            System.out.println("Grid after: " + grid(center+i));
+						}
+					} 
+				}
+			}
+		}
+		else {
+			var r=0;
+			//We added the cast to int in the following line.
+			//var maxl=ic.l(0) - recTile - ((recTallPar * localSize).toInt); // block size of pseudo singletons, tall cache assumption. 
+			//for(i <- 1 to dimensions-1 by 1){
+			//  if( rf(i)*ic.l(i) > maxl ) {
+			//    r = i;
+			//    maxl = (rf(i)*ic.l(i)).toInt;
+			//  }
+			//}
+			// ic used for right
+			var maxl = 0
+					for(i <- 1 to dimensions-1) {
+						if(ic.l(i) > maxl) {
+							r = i
+									maxl = ic.l(i)
+						}
+					}
+			//System.out.println();
+			//System.out.println("r: " + r);
+			//ic.printInterval()
+			//System.out.println();
+			var midI:Content= new Content();
+					midI.copy(ic.l);
+					midI.l(r) = -midI.l(r);
+					ic.l(r) = ic.l(r) - 1;
+					var dist = myPow2(ic.l(r)); // already reduced!
+					//leftI.asInt = ic.asInt;
+					var leftI:Content=new Content();
+					leftI.copy(ic.l);
+					var rmask = myPow2(r);
+					ic.l(6) |= rmask;
+					leftI.l(7) |= rmask;
+					dist *= strides(r); // already reduced!
+					if(r < s) r = s; // avoid calls!
+					if(r > t) r = t;
+
+					if (r!=0){
+						if(r > s) {
+							val t1: hierRecThreads = new hierRecThreads(s, r, center, midI, level + 1);
+						t1.run();
+						}
+
+						val t2: hierRecThreads = new hierRecThreads(s, t, center - dist, leftI, level + 1);
+						t2.run();
+
+						val t3: hierRecThreads = new hierRecThreads(s, t, center + dist, ic, level + 1);
+						t3.run(); 
+
+						if (t > r) {
+							val t4: hierRecThreads = new hierRecThreads(r, t, center, midI, level + 1);
+						t4.run();
+						} 
+					} else { //don't run in seperate threads, on the last level.
+						if(r > s) hierarchizeRec(s, r, center, midI, 0);
+						hierarchizeRec(s, t, center - dist, leftI, 0);
+						hierarchizeRec(s, t, center + dist, ic, 0);
+						if(t > r) hierarchizeRec(r, t, center, midI, 0);
+					}
+
+
+
+
+		}
+
+
+	}
+}
+
+
+def hierarchizeRec(si:Int, t:Int, center:Int, interval:Content, level:Int) {//Actual recursion method. Not threaded.
+	var s = si;
+	var ic = new Content();
+	ic.copy(interval.l)
 	var localSize = 0; //Set's sum of levels, to determine size.
 	for (i <- 1 to dimensions-1) {
 		if(ic.l(i) > 0) {
@@ -375,33 +595,45 @@ def hierarchizeRec(si:Int, t:Int, center:Int, interval:Content, level:Int) {//Ac
 		//ic.printInterval()
 		//System.out.println();
 		var midI:Content= new Content();
-		midI.copy(ic.l);
-		midI.l(r) = -midI.l(r);
-		ic.l(r) = ic.l(r) - 1;
-		var dist = myPow2(ic.l(r)); // already reduced!
-		//leftI.asInt = ic.asInt;
-		var leftI:Content=new Content();
-		leftI.copy(ic.l);
-		var rmask = myPow2(r);
-		ic.l(6) |= rmask;
-		leftI.l(7) |= rmask;
-		dist *= strides(r); // already reduced!
-		if(r < s) r = s; // avoid calls!
-		if(r > t) r = t;
-		if(r > s) {
-			//System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + center + '\t' + "Mid" + '\t' + "Level: " + level);
-			hierarchizeRec(s, r, center, midI, level + 1);
-		}
-		//System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + (center-dist) + '\t' + "Left" + '\t' + "Level: " + level);
-		hierarchizeRec(s, t, center - dist, leftI, level + 1);
-		//System.out.println("s: " + s + '\t' + "r: " + r + '\t' + "center: " + (center+dist) + '\t' + "Right" + '\t' + "Level: " + level);
-		hierarchizeRec(s, t, center + dist, ic, level + 1);
-		if(t > r) {
-			//System.out.println("r: " + r + '\t' + "t: " + t + '\t' + "center: " + center + '\t' + "Mid" + '\t' + "Level: " + level);
-			hierarchizeRec(r, t, center, midI, level + 1);
-		}
+				midI.copy(ic.l);
+				midI.l(r) = -midI.l(r);
+				ic.l(r) = ic.l(r) - 1;
+				var dist = myPow2(ic.l(r)); // already reduced!
+				//leftI.asInt = ic.asInt;
+				var leftI:Content=new Content();
+				leftI.copy(ic.l);
+				var rmask = myPow2(r);
+				ic.l(6) |= rmask;
+				leftI.l(7) |= rmask;
+				dist *= strides(r); // already reduced!
+				if(r < s) r = s; // avoid calls!
+				if(r > t) r = t;
+
+				//if (r!=0){
+				if(r > s) {
+					hierarchizeRec(s, r, center, midI, level + 1);
+				}
+
+
+				hierarchizeRec(s, t, center - dist, leftI, level + 1);
+
+
+				hierarchizeRec(s, t, center + dist, ic, level + 1);
+
+
+
+
+
+				if (t > r) {
+					hierarchizeRec(r, t, center, midI, level + 1);
+				}
 	}
 }
+
+
+
+
+
 
 //HELPER METHODS FOR RECURSION
 //this subtracts half of right and left from center.
@@ -424,12 +656,8 @@ def pos( index:Array[Int]): Int = {
 		return retPos;
 };
 
-
-
-
-
-class Content { //object for holding both int and byte-array.
-	//var asInt:Int=0;
+class Content { //object for holding both integer and byte-array.
+	//variable asInt:Int=0;
 	var l:Array[Int]=Array[Int](0,0,0,0,0,0,0,0);
 
 def copy(lInput:Array[Int]){
