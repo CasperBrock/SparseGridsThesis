@@ -19,9 +19,12 @@ public class CombiGrid {
 	public int[] pointsPerDimension;
 
 	public static void main(String[] args) {
-		//int[] levels = {3, 3, 3, 3, 3};
-		//CombiGrid grid = new CombiGrid(levels);
-		int[] levels = {3, 3};
+		int[] levels = {5, 5, 5, 5, 5};
+		CombiGrid grid = new CombiGrid(levels);
+		grid.setValues(GridFunctions.ALLONES);
+		grid.hierarchizeUnoptimizedTasks(16);
+		//grid.printValues();
+		/*int[] levels = {};
 		CombiGrid grid = new CombiGrid(levels);
 		CombiGrid grid2 = new CombiGrid(levels);
 		System.out.println("Gridsize: " + grid.gridSize);
@@ -30,11 +33,21 @@ public class CombiGrid {
 
 		grid2.setValues(GridFunctions.ALLONES);
 		grid2.hierarchizeUnoptimized();
-		grid2.printValues();
+		System.out.println(grid2.getLevels());
+		//grid2.printValues();
 		
 		if(grid2.compare(grid))
-			System.out.println("Grids are equal");
+			System.out.println("Grids are equal");*/
 		//grid.hierarchizeUnoptimizedThreads(4);
+		/*for(int i = 0; i < 10000; i++) {
+			Long start = System.currentTimeMillis();
+			CombiGrid grid = CombiGridBuilder.isotropicGrid(20, 3);
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeUnoptimized();
+			Long end = System.currentTimeMillis();
+			Long time = end - start;
+			System.out.println("Run: " + i + '\t' + "Time: " + time + " ms");
+		}*/
 		//grid.printValues();
 		//grid2.printValues();
 		//int[] levels = {3, 3};
@@ -1043,7 +1056,7 @@ public class CombiGrid {
 		int pointsInDimension;
 		int polesPerTask;
 		int numberOfPoles;
-		ExecutorService executor = Executors.newFixedThreadPool(numberOfTasks);
+		ExecutorService executor = Executors.newCachedThreadPool();
 		List<Future<?>> futures = new ArrayList<Future<?>>();
 
 		//dimension 1 separate as start of each pole is easier to calculate
