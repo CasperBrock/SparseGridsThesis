@@ -1056,8 +1056,6 @@ public class CombiGrid {
 		int pointsInDimension;
 		int polesPerTask;
 		int numberOfPoles;
-		//ExecutorService executor = Executors.newFixedThreadPool(numberOfTasks);
-		//ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
 		ExecutorService executor = Executors.newCachedThreadPool();
 		List<Future<?>> futures = new ArrayList<Future<?>>();
 
