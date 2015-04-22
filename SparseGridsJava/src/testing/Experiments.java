@@ -1,6 +1,7 @@
 package testing;
 
 import grid.*;
+import gridFunctions.GridFunctions;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -8,30 +9,597 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.nio.file.FileSystem;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Experiments {
 
 	public static void main(String[] args) {
-		List<String> data = new LinkedList<String>();
-		data.add(getInfo());
-		writeToFile("test", data);
+		scalingExperiment(25, 5, 10, 1, 8, true);
 	}
 	
-	private static String getInfo() {
+	public static void scalingExperiment(int size, int dim, int rep, int min, int max, boolean iso) {
+		UnoptimizedThreadsScaling(size, dim, rep, min, max, iso);
+		UnoptimizedThreadsOnceScaling(size, dim, rep, min, max, iso);
+		UnoptimizedTasksScaling(size, dim, rep, min, max, iso);
+		OptimizedThreadsScaling(size, dim, rep, min, max, iso);
+		OptimizedThreadsNoUnrollScaling(size, dim, rep, min, max, iso);
+		AlignedThreadsScaling(size, dim, rep, min, max, iso);
+		AlignedThreadsOnceScaling(size, dim, rep, min, max, iso);
+		AlignedTasksScaling(size, dim, rep, min, max, iso);
+		RecursiveScaling(size, dim, rep, min, max, iso);
+	}
+
+	private static void UnoptimizedThreadsScaling(int size, int dimensions, int repititions, int minNumberOfThreads, int maxNumberOfThreads, boolean isotropic) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double minTime;
+		double maxTime;
+		double dev = 0;
+
+		//warmup
+		CombiGrid grid = CombiGridBuilder.isotropicGrid(15, 3);
+		for(int i = 0; i < 10000; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeUnoptimizedThreads(16);
+		}
+		grid = null;
+		System.gc();
+
+		CombiGrid cg;
+		if(isotropic)
+			cg = CombiGridBuilder.isotropicGrid(size, dimensions);
+		else
+			cg = CombiGridBuilder.anisotropicGrid(size, dimensions);
+		List<String> data = new LinkedList<String>();
+		data.add(PCInfo());
+		data.add("HierarchizeUnoptimizedThreads");
+		data.add("Grid: " + cg.getLevels());
+		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
+			double[] times = new double[repititions];
+			totalTime = 0;
+			minTime = Double.MAX_VALUE;
+			maxTime = Double.MIN_VALUE;
+			for(int i = 0; i < repititions; i++) {
+				System.gc();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeUnoptimizedThreads(thread);
+				end = System.currentTimeMillis();
+				time = end - start;
+				if(time < minTime)
+					minTime = time;
+				if(time > maxTime)
+					maxTime = time;
+				times[i] = time;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+
+			//Calculate standard deviation
+			for(double d : times) {
+				dev += Math.pow(d - avgTime, 2);
+			}
+			dev = Math.sqrt(dev / (times.length - 1));
+
+			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+		}
+		writeToFile("UnoptimizedThreads Scaling " + cg.getLevels(), data);
+	}
+	
+	private static void UnoptimizedThreadsOnceScaling(int size, int dimensions, int repititions, int minNumberOfThreads, int maxNumberOfThreads, boolean isotropic) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double minTime;
+		double maxTime;
+		double dev = 0;
+
+		//warmup
+		CombiGrid grid = CombiGridBuilder.isotropicGrid(15, 3);
+		for(int i = 0; i < 10000; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeUnoptimizedThreadsOnce(16);
+		}
+		grid = null;
+		System.gc();
+
+		CombiGrid cg;
+		if(isotropic)
+			cg = CombiGridBuilder.isotropicGrid(size, dimensions);
+		else
+			cg = CombiGridBuilder.anisotropicGrid(size, dimensions);
+		List<String> data = new LinkedList<String>();
+		data.add(PCInfo());
+		data.add("HierarchizeUnoptimizedThreadsOnce");
+		data.add("Grid: " + cg.getLevels());
+		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
+			double[] times = new double[repititions];
+			totalTime = 0;
+			minTime = Double.MAX_VALUE;
+			maxTime = Double.MIN_VALUE;
+			for(int i = 0; i < repititions; i++) {
+				System.gc();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeUnoptimizedThreadsOnce(thread);
+				end = System.currentTimeMillis();
+				time = end - start;
+				if(time < minTime)
+					minTime = time;
+				if(time > maxTime)
+					maxTime = time;
+				times[i] = time;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+
+			//Calculate standard deviation
+			for(double d : times) {
+				dev += Math.pow(d - avgTime, 2);
+			}
+			dev = Math.sqrt(dev / (times.length - 1));
+
+			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+		}
+		writeToFile("UnoptimizedThreadsOnce Scaling " + cg.getLevels(), data);
+	}
+	
+	private static void UnoptimizedTasksScaling(int size, int dimensions, int repititions, int minNumberOfTasks, int maxNumberOfTasks, boolean isotropic) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double minTime;
+		double maxTime;
+		double dev = 0;
+
+		//Reduced warmup for task based hierarchization, for some it consumes a lot of the machine's resources.
+		CombiGrid grid = CombiGridBuilder.isotropicGrid(15, 3);
+		for(int i = 0; i < 100; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeUnoptimizedTasks(1);
+		}
+		grid = null;
+		System.gc();
+
+		CombiGrid cg;
+		if(isotropic)
+			cg = CombiGridBuilder.isotropicGrid(size, dimensions);
+		else
+			cg = CombiGridBuilder.anisotropicGrid(size, dimensions);
+		List<String> data = new LinkedList<String>();
+		data.add(PCInfo());
+		data.add("HierarchizeUnoptimizedTasks");
+		data.add("Grid: " + cg.getLevels());
+		data.add("Tasks" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		for(int task = minNumberOfTasks; task <= maxNumberOfTasks; task++) {
+			double[] times = new double[repititions];
+			totalTime = 0;
+			minTime = Double.MAX_VALUE;
+			maxTime = Double.MIN_VALUE;
+			for(int i = 0; i < repititions; i++) {
+				System.gc();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeUnoptimizedTasks(task);
+				end = System.currentTimeMillis();
+				time = end - start;
+				if(time < minTime)
+					minTime = time;
+				if(time > maxTime)
+					maxTime = time;
+				times[i] = time;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+
+			//Calculate standard deviation
+			for(double d : times) {
+				dev += Math.pow(d - avgTime, 2);
+			}
+			dev = Math.sqrt(dev / (times.length - 1));
+
+			data.add("" + task + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+		}
+		writeToFile("UnoptimizedTasks Scaling " + cg.getLevels(), data);
+	}
+
+	private static void OptimizedThreadsScaling(int size, int dimensions, int repititions, int minNumberOfThreads, int maxNumberOfThreads, boolean isotropic) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double minTime;
+		double maxTime;
+		double dev = 0;
+
+		//warmup
+		CombiGrid grid = CombiGridBuilder.isotropicGrid(15, 3);
+		for(int i = 0; i < 10000; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeOptimizedThreads(16);
+		}
+		grid = null;
+		System.gc();
+
+		CombiGrid cg;
+		if(isotropic)
+			cg = CombiGridBuilder.isotropicGrid(size, dimensions);
+		else
+			cg = CombiGridBuilder.anisotropicGrid(size, dimensions);
+		List<String> data = new LinkedList<String>();
+		data.add(PCInfo());
+		data.add("HierarchizeOptimizedThreads");
+		data.add("Grid: " + cg.getLevels());
+		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
+			double[] times = new double[repititions];
+			totalTime = 0;
+			minTime = Double.MAX_VALUE;
+			maxTime = Double.MIN_VALUE;
+			for(int i = 0; i < repititions; i++) {
+				System.gc();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreads(thread);
+				end = System.currentTimeMillis();
+				time = end - start;
+				if(time < minTime)
+					minTime = time;
+				if(time > maxTime)
+					maxTime = time;
+				times[i] = time;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+
+			//Calculate standard deviation
+			for(double d : times) {
+				dev += Math.pow(d - avgTime, 2);
+			}
+			dev = Math.sqrt(dev / (times.length - 1));
+
+			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+		}
+		writeToFile("OptimizedThreads Scaling " + cg.getLevels(), data);
+	}
+	
+	private static void OptimizedThreadsNoUnrollScaling(int size, int dimensions, int repititions, int minNumberOfThreads, int maxNumberOfThreads, boolean isotropic) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double minTime;
+		double maxTime;
+		double dev = 0;
+
+		//warmup
+		CombiGrid grid = CombiGridBuilder.isotropicGrid(15, 3);
+		for(int i = 0; i < 10000; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeOptimizedThreadsNoUnroll(16);
+		}
+		grid = null;
+		System.gc();
+
+		CombiGrid cg;
+		if(isotropic)
+			cg = CombiGridBuilder.isotropicGrid(size, dimensions);
+		else
+			cg = CombiGridBuilder.anisotropicGrid(size, dimensions);
+		List<String> data = new LinkedList<String>();
+		data.add(PCInfo());
+		data.add("HierarchizeOptimizedThreadsNoUnroll");
+		data.add("Grid: " + cg.getLevels());
+		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
+			double[] times = new double[repititions];
+			totalTime = 0;
+			minTime = Double.MAX_VALUE;
+			maxTime = Double.MIN_VALUE;
+			for(int i = 0; i < repititions; i++) {
+				System.gc();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreadsNoUnroll(thread);
+				end = System.currentTimeMillis();
+				time = end - start;
+				if(time < minTime)
+					minTime = time;
+				if(time > maxTime)
+					maxTime = time;
+				times[i] = time;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+
+			//Calculate standard deviation
+			for(double d : times) {
+				dev += Math.pow(d - avgTime, 2);
+			}
+			dev = Math.sqrt(dev / (times.length - 1));
+
+			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+		}
+		writeToFile("OptimizedThreadsUnroll Scaling " + cg.getLevels(), data);
+	}
+	
+	private static void AlignedThreadsScaling(int size, int dimensions, int repititions, int minNumberOfThreads, int maxNumberOfThreads, boolean isotropic) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double minTime;
+		double maxTime;
+		double dev = 0;
+
+		//warmup
+		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
+		for(int i = 0; i < 10000; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeOptimizedThreads(16);
+		}
+		grid = null;
+		System.gc();
+
+		CombiGridAligned cg;
+		if(isotropic)
+			cg = CombiGridBuilder.isotropicAlignedGrid(size, dimensions);
+		else
+			cg = CombiGridBuilder.anisotropicAlignedGrid(size, dimensions);
+		List<String> data = new LinkedList<String>();
+		data.add(PCInfo());
+		data.add("HierarchizeAlignedOptimizedThreads");
+		data.add("Grid: " + cg.getLevels());
+		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
+			double[] times = new double[repititions];
+			totalTime = 0;
+			minTime = Double.MAX_VALUE;
+			maxTime = Double.MIN_VALUE;
+			for(int i = 0; i < repititions; i++) {
+				System.gc();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreads(thread);
+				end = System.currentTimeMillis();
+				time = end - start;
+				if(time < minTime)
+					minTime = time;
+				if(time > maxTime)
+					maxTime = time;
+				times[i] = time;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+
+			//Calculate standard deviation
+			for(double d : times) {
+				dev += Math.pow(d - avgTime, 2);
+			}
+			dev = Math.sqrt(dev / (times.length - 1));
+
+			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+		}
+		writeToFile("Aligned optimizedThreads Scaling " + cg.getLevels(), data);
+	}
+	
+	private static void AlignedThreadsOnceScaling(int size, int dimensions, int repititions, int minNumberOfThreads, int maxNumberOfThreads, boolean isotropic) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double minTime;
+		double maxTime;
+		double dev = 0;
+
+		//warmup
+		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
+		for(int i = 0; i < 10000; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeOptimizedThreadsOnce(16);
+		}
+		grid = null;
+		System.gc();
+
+		CombiGridAligned cg;
+		if(isotropic)
+			cg = CombiGridBuilder.isotropicAlignedGrid(size, dimensions);
+		else
+			cg = CombiGridBuilder.anisotropicAlignedGrid(size, dimensions);
+		List<String> data = new LinkedList<String>();
+		data.add(PCInfo());
+		data.add("HierarchizeAlignedOptimizedThreadsOnce");
+		data.add("Grid: " + cg.getLevels());
+		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
+			double[] times = new double[repititions];
+			totalTime = 0;
+			minTime = Double.MAX_VALUE;
+			maxTime = Double.MIN_VALUE;
+			for(int i = 0; i < repititions; i++) {
+				System.gc();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedThreadsOnce(thread);
+				end = System.currentTimeMillis();
+				time = end - start;
+				if(time < minTime)
+					minTime = time;
+				if(time > maxTime)
+					maxTime = time;
+				times[i] = time;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+
+			//Calculate standard deviation
+			for(double d : times) {
+				dev += Math.pow(d - avgTime, 2);
+			}
+			dev = Math.sqrt(dev / (times.length - 1));
+
+			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+		}
+		writeToFile("Aligned optimizedThreadsOnce Scaling " + cg.getLevels(), data);
+	}
+	
+	private static void AlignedTasksScaling(int size, int dimensions, int repititions, int minNumberOfTasks, int maxNumberOfTasks, boolean isotropic) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double minTime;
+		double maxTime;
+		double dev = 0;
+
+		//Reduced warmup as the task based methods consume a lot of memory for some reason
+		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
+		for(int i = 0; i < 100; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeOptimizedTasks(1);
+		}
+		grid = null;
+		System.gc();
+
+		CombiGridAligned cg;
+		if(isotropic)
+			cg = CombiGridBuilder.isotropicAlignedGrid(size, dimensions);
+		else
+			cg = CombiGridBuilder.anisotropicAlignedGrid(size, dimensions);
+		List<String> data = new LinkedList<String>();
+		data.add(PCInfo());
+		data.add("HierarchizeAlignedOptimizedTasks");
+		data.add("Grid: " + cg.getLevels());
+		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		for(int tasks = minNumberOfTasks; tasks <= maxNumberOfTasks; tasks++) {
+			double[] times = new double[repititions];
+			totalTime = 0;
+			minTime = Double.MAX_VALUE;
+			maxTime = Double.MIN_VALUE;
+			for(int i = 0; i < repititions; i++) {
+				System.gc();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeOptimizedTasks(tasks);
+				end = System.currentTimeMillis();
+				time = end - start;
+				if(time < minTime)
+					minTime = time;
+				if(time > maxTime)
+					maxTime = time;
+				times[i] = time;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+
+			//Calculate standard deviation
+			for(double d : times) {
+				dev += Math.pow(d - avgTime, 2);
+			}
+			dev = Math.sqrt(dev / (times.length - 1));
+
+			data.add("" + tasks + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+		}
+		writeToFile("Aligned optimizedTasks Scaling " + cg.getLevels(), data);
+	}
+	
+	private static void RecursiveScaling(int size, int dimensions, int repititions, int minNumberOfThreads, int maxNumberOfThreads, boolean isotropic) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+		double minTime;
+		double maxTime;
+		double dev = 0;
+
+		//warmup
+		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
+		for(int i = 0; i < 10000; i++) {
+			grid.setValues(GridFunctions.ALLONES);
+			grid.hierarchizeRecursiveThreads(16);
+		}
+		grid = null;
+		System.gc();
+
+		CombiGridAligned cg;
+		if(isotropic)
+			cg = CombiGridBuilder.isotropicAlignedGrid(size, dimensions);
+		else
+			cg = CombiGridBuilder.anisotropicAlignedGrid(size, dimensions);
+		List<String> data = new LinkedList<String>();
+		data.add(PCInfo());
+		data.add("HierarchizeRecursiveThreads");
+		data.add("Grid: " + cg.getLevels());
+		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
+			double[] times = new double[repititions];
+			totalTime = 0;
+			minTime = Double.MAX_VALUE;
+			maxTime = Double.MIN_VALUE;
+			for(int i = 0; i < repititions; i++) {
+				System.gc();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeRecursiveThreads(thread);
+				end = System.currentTimeMillis();
+				time = end - start;
+				if(time < minTime)
+					minTime = time;
+				if(time > maxTime)
+					maxTime = time;
+				times[i] = time;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+
+			//Calculate standard deviation
+			for(double d : times) {
+				dev += Math.pow(d - avgTime, 2);
+			}
+			dev = Math.sqrt(dev / (times.length - 1));
+
+			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+		}
+		writeToFile("Aligned RecursiveThreads Scaling " + cg.getLevels(), data);
+	}
+
+	private static String PCInfo() {
 		RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
 		List<String> arguments = runtimeMxBean.getInputArguments();
 		StringBuilder sb = new StringBuilder();
 		sb.append("# OS: " +
-		System.getProperty("os.name") + " " +
-		System.getProperty("os.version") + " " +
-		System.getProperty("os.arch"));
+				System.getProperty("os.name") + " " +
+				System.getProperty("os.version") + " " +
+				System.getProperty("os.arch"));
 		sb.append('\n');
 		sb.append("# JVM: " +
-		System.getProperty("java.vendor") + " " +
-		System.getProperty("java.version"));
+				System.getProperty("java.vendor") + " " +
+				System.getProperty("java.version"));
 		sb.append('\n');
 		// This line works only on MS Windows:
 		sb.append("# CPU: " + System.getenv("PROCESSOR_IDENTIFIER"));
@@ -42,7 +610,7 @@ public class Experiments {
 		sb.append('\n');
 		java.util.Date now = new java.util.Date();
 		sb.append("# Date: " +
-		new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ").format(now));
+				new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ").format(now));
 		sb.append('\n');
 		sb.append("# VM Arguments: ");
 		for(String s : arguments)
@@ -50,7 +618,7 @@ public class Experiments {
 		sb.append('\n');
 		return sb.toString();
 	}
-	
+
 	private static void writeToFile(String filename, List<String> data)
 	{
 		try {
@@ -58,14 +626,14 @@ public class Experiments {
 			if(!dir.exists())
 				dir.mkdir();
 			File file = new File("Experiments" + File.separator + filename + ".dat");
- 
+
 			// if file exists deletes it then creates it again
 			if (file.exists()) {
 				file.delete();
 			}
 			file.createNewFile();
-			
- 
+
+
 			FileWriter fw = new FileWriter(file.getAbsoluteFile());
 			BufferedWriter bw = new BufferedWriter(fw);
 			for(String s : data) {
@@ -73,7 +641,7 @@ public class Experiments {
 				bw.write("\n");
 			}
 			bw.close();
- 
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
