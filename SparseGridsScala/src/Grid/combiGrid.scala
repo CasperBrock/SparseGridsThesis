@@ -7,9 +7,9 @@ import scala.collection.Parallel
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.parallel.mutable.ParSeq
 import scala.collection.parallel.mutable.ParArray
-import scala.util.Success
 
-object CombiGrid {
+
+object CombiGridScala {
 	//TODO thread the unidirectional as in parallelstream (divide each poleblock into a thread.)
 
 	//global variables:
@@ -251,9 +251,9 @@ H.run()
 
 class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) extends Runnable {
 
-
+   
 	//For running in threads
-	override def run(){
+	 override def run(){
 		val level = leveli;
 		var s=si;
 		val ic = new Content();
@@ -660,15 +660,171 @@ class Content { //object for holding both integer and byte-array.
 	//variable asInt:Int=0;
 	var l:Array[Int]=Array[Int](0,0,0,0,0,0,0,0);
 
-def copy(lInput:Array[Int]){
-	//asInt = asIntInput;
-	System.arraycopy(lInput, 0, l, 0, lInput.length);
+  def copy(lInput:Array[Int]){
+	  //asInt = asIntInput;
+	  System.arraycopy(lInput, 0, l, 0, lInput.length);
+  }
+  
+  def printInterval() {
+	  System.out.print("" + l(0));
+	  for(i <- 1 to 7)
+		  System.out.print(", " + l(i))
+		  System.out.println()
+  }
 }
-def printInterval() {
-	System.out.print("" + l(0));
-	for(i <- 1 to 7)
-		System.out.print(", " + l(i))
-		System.out.println()
+
+/***
+   * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework.
+   * This method creates a pole object for each pole, and then uses the parallelStream() method to run all the poles
+   * in parallel. All the parallelism is done by the Java framework.
+   */
+    def hierarchizeUnoptimizedParallelStream() {
+      var dimension:Int=0;
+      var start:Int=1;
+      var stride = 1;
+      var poles: ParArray[Pole]=ParArray[Pole]();// Must be parArray, as we expect this will start the operations in parallel.
+  
+  
+      //dimension 1 separate as start of each pole is easier to calculate
+      var pointsInDimension = pointsPerDimension(0);
+      var numberOfPoles = gridSize / pointsInDimension;
+      for (i <- 0 to numberOfPoles-1 by 1){
+        start = i * pointsInDimension;
+        var p: Pole= new Pole; 
+        p.Pole(start, 1, pointsInDimension, 0);
+        poles:+ p;
+      }
+      // end dimension 1
+      poles //Poles is parArray, so this should happen in parallel.
+      .foreach { pole => hierarchize1DUnoptimized(pole.start, pole.stride, pole.pointsInDimension, pole.dimension) };
+  
+      for(dimension <- 1 to dimensions-1 by 1){ // hierarchize all dimensions
+        poles=ParArray[Pole](); //this makes a new, empty array.
+        stride *= pointsInDimension;
+        pointsInDimension = pointsPerDimension(dimension);
+        var jump = stride * pointsInDimension;
+        numberOfPoles = gridSize / pointsInDimension;
+        for (i <- 0 to numberOfPoles-1 by 1){ // integer operations form bottleneck here -- nested loops are twice as slow
+          val div = i / stride;
+          start = div * jump + (i % stride);
+          var p: Pole = new Pole();
+          p.Pole(start, stride, pointsInDimension, dimension);
+          poles:+p;
+        }
+        poles
+        .foreach{pole => hierarchize1DUnoptimized(pole.start, pole.stride, pole.pointsInDimension, pole.dimension)};
+      } // end loop over dimension 2 to d
+    }
+
+  /***
+   * Hierarchizes the grid using a parallel unoptimized algorithm using the Java Parallel Stream framework.
+   * This method creates numberOfBlocks poleBlock objects per dimension to hierarchize a subset of the poles.
+   * Then is uses the parallelStream() method to run the hierarchization in parallel.
+   * All parallism is handled by the Java framework.
+   *
+   * @param numberOfChunks The number of block objects to use
+   */
+    def hierarchizeUnoptimizedParallelStream(numberOfChunks:Int) {
+        var stride = 1;
+        var blocks: ParArray[PoleBlock]=ParArray[PoleBlock]();
+  
+  
+      //dimension 1 separate as start of each pole is easier to calculate
+      var pointsInDimension = pointsPerDimension(0);
+      var numberOfPoles = gridSize / pointsInDimension;
+      var polesPerBlock = numberOfPoles / numberOfChunks;
+  
+      for(i <- 0 to numberOfChunks-1 by 1) {
+        var from = i * polesPerBlock;
+        var to:Int=1; //Must be set.
+        if (i+1 == numberOfChunks){
+          to = numberOfPoles;
+        } else {
+          to = polesPerBlock * (i-1);
+        }
+        var pb:PoleBlock = new PoleBlock;
+        pb.PoleBlock(1, pointsInDimension, 0, pointsInDimension, from, to);
+        blocks:+ pb;
+      }
+  
+      blocks
+        .foreach(block => block.hierarchize());
+  
+      for(dimension <- 1 to dimensions-1 by 1) { // hierarchize all dimensions
+        blocks=ParArray[PoleBlock](); //this makes a new, empty array.
+        stride *= pointsInDimension;
+        pointsInDimension = pointsPerDimension(dimension);
+        val jump = stride * pointsInDimension;
+        numberOfPoles = gridSize / pointsInDimension;
+        polesPerBlock = numberOfPoles / numberOfChunks;
+        for(i <- 0 to numberOfChunks-1 by 1) {
+          var from = i * polesPerBlock;
+          var to: Int = 0;
+          if (i+1==numberOfChunks) {
+            to = numberOfPoles;
+          } else {
+            to = polesPerBlock * (i+1);
+          }
+          var pb:PoleBlock = new PoleBlock;
+          pb.PoleBlock(stride, pointsInDimension, dimension, jump, from, to);
+          blocks:+pb;
+        }
+  
+        blocks
+          .foreach(block => block.hierarchize());
+      }
+      // end loop over dimension 2 to d
+    }
+
+/***
+ * Object to contain the variables needed for a pole.
+ * Used in the hierarchizeUnoptimizedParallelStream method.
+ */
+
+    
+class Pole {
+  var start: Int=0; //public int start;
+  var stride: Int=0;  //public int stride;
+  var pointsInDimension: Int=0; //public int pointsInDimension;
+  var dimension: Int=0;  //public int dimension;
+
+  def Pole(start: Int, stride:Int, pointsInDimension:Int, dimension:Int) {
+    this.start = start;
+    this.stride = stride;
+    this.pointsInDimension = pointsInDimension;
+    this.dimension = dimension;
+  }
 }
+
+class PoleBlock {
+  
+  var grid:ParArray[Double]= ParArray[Double](0);
+  var stride: Int=0;
+  var pointsInDimension: Int=0;
+  var dimension: Int=0;
+  var jump: Int=0;
+  var from: Int=0;
+  var to: Int=0;
+
+  def PoleBlock(stride: Int, pointsInDimension: Int, dimension: Int, jump: Int, from: Int, to: Int) {
+    this.stride = stride;
+    this.pointsInDimension = pointsInDimension;
+    this.dimension = dimension;
+    this.jump = jump;
+    this.from = from;
+    this.to = to;
+  }
+
+  def hierarchize() {
+    for ( i <- from to to-1 by 1) { 
+      var div = i / stride;
+      var start = div * jump + (i % stride);
+      hierarchize1DUnoptimized(start, stride, pointsInDimension, dimension);
+    }
+  }
 }
+
 }
+
+
+
