@@ -754,7 +754,7 @@ public class CombiGridAligned {
 	/**
 	 * Hierachizes the grid using a recursive algorithm.
 	 */
-	public void hierarchizeRecursive(){ //Overall recursive call
+	public void hierarchizeRecursive() { //Overall recursive call
 		// this method starts the recursion, using the hierarchizeRec-call.
 
 		int centerInd[] = new int[dimensions];

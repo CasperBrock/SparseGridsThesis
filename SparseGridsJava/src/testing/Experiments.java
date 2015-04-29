@@ -32,7 +32,9 @@ public class Experiments {
 			minSize = maxSize - 1;
 		
 		scalingExperiment(maxSize, 5, 10, 1, threads, true);
+		scalingExperiment(maxSize, 5, 10, 1, threads, false);
 		varyingSizeExperiment(minSize, maxSize, 10, threads, true);
+		varyingSizeExperiment(minSize, maxSize, 10, threads, false);
 	}
 
 	public static void scalingExperiment(int size, int dim, int rep, int min, int max, boolean iso) {
