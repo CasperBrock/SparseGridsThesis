@@ -634,6 +634,8 @@ public class CombiGridAligned {
 			try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
 			futures.clear();
 		}
+		
+		executor.shutdown();
 	}
 
 
@@ -947,6 +949,7 @@ public class CombiGridAligned {
 
 		hierarchizeRecThreads HT = new hierarchizeRecThreads(0, dimensions, center, fullInterval);
 		pool.invoke(HT);
+		pool.shutdown();
 	}
 
 

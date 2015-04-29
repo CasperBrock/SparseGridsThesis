@@ -1101,6 +1101,8 @@ public class CombiGrid {
 			try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
 			futures.clear();
 		}
+		
+		executor.shutdown();
 	}
 
 	/**

@@ -14,22 +14,26 @@ import java.util.List;
 
 public class Experiments {
 
+	static String folderName = "";
 	/**
-	 * First parameter is max size, second parameter is max threads
-	 * Third (optional) parameter is minSize, if undeclared will be set at maxSize - 1
+	 * First parameter is the name of the folder to put the results in, this should be experiment specific
+	 * Second parameter is max size. This must be at least 10, third parameter is max threads
+	 * Fourth (optional) parameter is minSize, if undeclared will be set at maxSize - 1
 	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		if(args.length < 2)
-			throw new IllegalArgumentException("Declare max size and max threads");
-		int maxSize = Integer.parseInt(args[0]);
-		int threads = Integer.parseInt(args[1]);
+		if(args.length < 3)
+			throw new IllegalArgumentException("Declare experiment folder name, max size and max threads");
+		folderName = args[0];
+		int maxSize = Integer.parseInt(args[1]);
+		int threads = Integer.parseInt(args[2]);
 		int minSize;
-		if(args.length > 2)
-			minSize = Integer.parseInt(args[2]);
+		if(args.length > 3)
+			minSize = Integer.parseInt(args[3]);
 		else
 			minSize = maxSize - 1;
+		
 		
 		scalingExperiment(maxSize, 5, 10, 1, threads, true);
 		scalingExperiment(maxSize, 5, 10, 1, threads, false);
@@ -197,7 +201,7 @@ public class Experiments {
 
 		//Reduced warmup for task based hierarchization, for some it consumes a lot of the machine's resources.
 		CombiGrid grid = CombiGridBuilder.isotropicGrid(15, 3);
-		for(int i = 0; i < 100; i++) {
+		for(int i = 0; i < 10000; i++) {
 			grid.setValues(GridFunctions.ALLONES);
 			grid.hierarchizeUnoptimizedTasks(1);
 		}
@@ -507,7 +511,7 @@ public class Experiments {
 
 		//Reduced warmup as the task based methods consume a lot of memory for some reason
 		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
-		for(int i = 0; i < 100; i++) {
+		for(int i = 0; i < 10000; i++) {
 			grid.setValues(GridFunctions.ALLONES);
 			grid.hierarchizeOptimizedTasks(1);
 		}
@@ -1276,10 +1280,10 @@ public class Experiments {
 	private static void writeToFile(String filename, List<String> data)
 	{
 		try {
-			File dir = new File("Experiments");
+			File dir = new File(folderName);
 			if(!dir.exists())
 				dir.mkdir();
-			File file = new File("Experiments" + File.separator + filename + ".dat");
+			File file = new File(folderName + File.separator + filename + ".dat");
 
 			// if file exists deletes it then creates it again
 			if (file.exists()) {
