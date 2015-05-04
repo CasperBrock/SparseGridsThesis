@@ -97,6 +97,7 @@ public class Experiments {
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
 			totalTime = 0;
+			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
 			for(int i = 0; i < repititions; i++) {
@@ -159,6 +160,7 @@ public class Experiments {
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
 			totalTime = 0;
+			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
 			for(int i = 0; i < repititions; i++) {
@@ -221,6 +223,7 @@ public class Experiments {
 		for(int task = minNumberOfTasks; task <= maxNumberOfTasks; task++) {
 			double[] times = new double[repititions];
 			totalTime = 0;
+			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
 			for(int i = 0; i < repititions; i++) {
@@ -283,6 +286,7 @@ public class Experiments {
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
 			totalTime = 0;
+			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
 			for(int i = 0; i < repititions; i++) {
@@ -345,6 +349,7 @@ public class Experiments {
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
 			totalTime = 0;
+			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
 			for(int i = 0; i < repititions; i++) {
@@ -407,6 +412,7 @@ public class Experiments {
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
 			totalTime = 0;
+			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
 			for(int i = 0; i < repititions; i++) {
@@ -469,6 +475,7 @@ public class Experiments {
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
 			totalTime = 0;
+			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
 			for(int i = 0; i < repititions; i++) {
@@ -531,6 +538,7 @@ public class Experiments {
 		for(int tasks = minNumberOfTasks; tasks <= maxNumberOfTasks; tasks++) {
 			double[] times = new double[repititions];
 			totalTime = 0;
+			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
 			for(int i = 0; i < repititions; i++) {
@@ -594,6 +602,7 @@ public class Experiments {
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
 			totalTime = 0;
+			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
 			for(int i = 0; i < repititions; i++) {
@@ -657,6 +666,7 @@ public class Experiments {
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
 				totalTime = 0;
+				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
 				for(int i = 0; i < repititions; i++) {
@@ -726,6 +736,7 @@ public class Experiments {
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
 				totalTime = 0;
+				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
 				for(int i = 0; i < repititions; i++) {
@@ -795,6 +806,7 @@ public class Experiments {
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
 				totalTime = 0;
+				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
 				for(int i = 0; i < repititions; i++) {
@@ -864,6 +876,7 @@ public class Experiments {
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
 				totalTime = 0;
+				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
 				for(int i = 0; i < repititions; i++) {
@@ -933,6 +946,7 @@ public class Experiments {
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
 				totalTime = 0;
+				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
 				for(int i = 0; i < repititions; i++) {
@@ -1002,6 +1016,7 @@ public class Experiments {
 					cg = CombiGridBuilder.anisotropicAlignedGrid(size, dim);
 				double[] times = new double[repititions];
 				totalTime = 0;
+				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
 				for(int i = 0; i < repititions; i++) {
@@ -1071,6 +1086,7 @@ public class Experiments {
 					cg = CombiGridBuilder.anisotropicAlignedGrid(size, dim);
 				double[] times = new double[repititions];
 				totalTime = 0;
+				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
 				for(int i = 0; i < repititions; i++) {
@@ -1140,6 +1156,7 @@ public class Experiments {
 					cg = CombiGridBuilder.anisotropicAlignedGrid(size, dim);
 				double[] times = new double[repititions];
 				totalTime = 0;
+				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
 				for(int i = 0; i < repititions; i++) {
@@ -1210,6 +1227,7 @@ public class Experiments {
 				cg.recTile = cg.levels[0];
 				double[] times = new double[repititions];
 				totalTime = 0;
+				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
 				for(int i = 0; i < repititions; i++) {
