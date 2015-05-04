@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -69,7 +70,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -93,10 +93,9 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeUnoptimizedThreads");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
-			totalTime = 0;
 			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
@@ -113,16 +112,17 @@ public class Experiments {
 				if(time > maxTime)
 					maxTime = time;
 				times[i] = time;
-				totalTime += time;
 			}
-			avgTime = totalTime / repititions;
 
+			Arrays.sort(times);
+			avgTime = (times[4] + times[5]) / 2;
+			
 			//Calculate standard deviation
 			for(double d : times) {
 				dev += Math.pow(d - avgTime, 2);
 			}
-			dev = Math.sqrt(dev / (times.length - 1));
-
+			dev = Math.sqrt(dev / (times.length - 1));			
+			
 			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
 		}
 		writeToFile("UnoptimizedThreads Scaling " + cg.getLevels(), data);
@@ -132,7 +132,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -156,10 +155,9 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeUnoptimizedThreadsOnce");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
-			totalTime = 0;
 			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
@@ -176,9 +174,10 @@ public class Experiments {
 				if(time > maxTime)
 					maxTime = time;
 				times[i] = time;
-				totalTime += time;
 			}
-			avgTime = totalTime / repititions;
+
+			Arrays.sort(times);
+			avgTime = (times[4] + times[5]) / 2;
 
 			//Calculate standard deviation
 			for(double d : times) {
@@ -195,7 +194,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -219,10 +217,9 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeUnoptimizedTasks");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Tasks" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Tasks" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int task = minNumberOfTasks; task <= maxNumberOfTasks; task++) {
 			double[] times = new double[repititions];
-			totalTime = 0;
 			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
@@ -239,9 +236,10 @@ public class Experiments {
 				if(time > maxTime)
 					maxTime = time;
 				times[i] = time;
-				totalTime += time;
 			}
-			avgTime = totalTime / repititions;
+
+			Arrays.sort(times);
+			avgTime = (times[4] + times[5]) / 2;
 
 			//Calculate standard deviation
 			for(double d : times) {
@@ -258,7 +256,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -282,10 +279,9 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeOptimizedThreads");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
-			totalTime = 0;
 			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
@@ -302,9 +298,10 @@ public class Experiments {
 				if(time > maxTime)
 					maxTime = time;
 				times[i] = time;
-				totalTime += time;
 			}
-			avgTime = totalTime / repititions;
+
+			Arrays.sort(times);
+			avgTime = (times[4] + times[5]) / 2;
 
 			//Calculate standard deviation
 			for(double d : times) {
@@ -321,7 +318,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -345,10 +341,9 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeOptimizedThreadsNoUnroll");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
-			totalTime = 0;
 			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
@@ -365,9 +360,10 @@ public class Experiments {
 				if(time > maxTime)
 					maxTime = time;
 				times[i] = time;
-				totalTime += time;
 			}
-			avgTime = totalTime / repititions;
+
+			Arrays.sort(times);
+			avgTime = (times[4] + times[5]) / 2;
 
 			//Calculate standard deviation
 			for(double d : times) {
@@ -384,7 +380,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -408,10 +403,9 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeAlignedOptimizedThreads");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
-			totalTime = 0;
 			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
@@ -428,9 +422,10 @@ public class Experiments {
 				if(time > maxTime)
 					maxTime = time;
 				times[i] = time;
-				totalTime += time;
 			}
-			avgTime = totalTime / repititions;
+
+			Arrays.sort(times);
+			avgTime = (times[4] + times[5]) / 2;
 
 			//Calculate standard deviation
 			for(double d : times) {
@@ -447,7 +442,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -471,10 +465,9 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeAlignedOptimizedThreadsOnce");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
-			totalTime = 0;
 			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
@@ -491,9 +484,10 @@ public class Experiments {
 				if(time > maxTime)
 					maxTime = time;
 				times[i] = time;
-				totalTime += time;
 			}
-			avgTime = totalTime / repititions;
+			
+			Arrays.sort(times);
+			avgTime = (times[4] + times[5]) / 2;
 
 			//Calculate standard deviation
 			for(double d : times) {
@@ -510,7 +504,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -534,10 +527,9 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeAlignedOptimizedTasks");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int tasks = minNumberOfTasks; tasks <= maxNumberOfTasks; tasks++) {
 			double[] times = new double[repititions];
-			totalTime = 0;
 			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
@@ -554,9 +546,10 @@ public class Experiments {
 				if(time > maxTime)
 					maxTime = time;
 				times[i] = time;
-				totalTime += time;
 			}
-			avgTime = totalTime / repititions;
+
+			Arrays.sort(times);
+			avgTime = (times[4] + times[5]) / 2;
 
 			//Calculate standard deviation
 			for(double d : times) {
@@ -573,7 +566,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -598,10 +590,9 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeRecursiveThreads");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Threads" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
-			totalTime = 0;
 			dev = 0;
 			minTime = Double.MAX_VALUE;
 			maxTime = Double.MIN_VALUE;
@@ -618,9 +609,10 @@ public class Experiments {
 				if(time > maxTime)
 					maxTime = time;
 				times[i] = time;
-				totalTime += time;
 			}
-			avgTime = totalTime / repititions;
+
+			Arrays.sort(times);
+			avgTime = (times[4] + times[5]) / 2;
 
 			//Calculate standard deviation
 			for(double d : times) {
@@ -637,7 +629,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -656,7 +647,7 @@ public class Experiments {
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
 		data.add("HierarchizeUnoptimizedThreads");
-		data.add("Grid" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
 			for(int size = minSize; size <= maxSize; size++) {
@@ -665,7 +656,6 @@ public class Experiments {
 				else
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
-				totalTime = 0;
 				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
@@ -682,9 +672,10 @@ public class Experiments {
 					if(time > maxTime)
 						maxTime = time;
 					times[i] = time;
-					totalTime += time;
 				}
-				avgTime = totalTime / repititions;
+
+				Arrays.sort(times);
+				avgTime = (times[4] + times[5]) / 2;
 
 				//Calculate standard deviation
 				for(double d : times) {
@@ -707,7 +698,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -726,7 +716,7 @@ public class Experiments {
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
 		data.add("HierarchizeUnoptimizedThreadsOnce");
-		data.add("Grid" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
 			for(int size = minSize; size <= maxSize; size++) {
@@ -735,7 +725,6 @@ public class Experiments {
 				else
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
-				totalTime = 0;
 				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
@@ -752,9 +741,10 @@ public class Experiments {
 					if(time > maxTime)
 						maxTime = time;
 					times[i] = time;
-					totalTime += time;
 				}
-				avgTime = totalTime / repititions;
+
+				Arrays.sort(times);
+				avgTime = (times[4] + times[5]) / 2;
 
 				//Calculate standard deviation
 				for(double d : times) {
@@ -777,7 +767,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -796,7 +785,7 @@ public class Experiments {
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
 		data.add("HierarchizeUnoptimizedTasks");
-		data.add("Grid" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
 			for(int size = minSize; size <= maxSize; size++) {
@@ -805,7 +794,6 @@ public class Experiments {
 				else
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
-				totalTime = 0;
 				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
@@ -822,9 +810,10 @@ public class Experiments {
 					if(time > maxTime)
 						maxTime = time;
 					times[i] = time;
-					totalTime += time;
 				}
-				avgTime = totalTime / repititions;
+
+				Arrays.sort(times);
+				avgTime = (times[4] + times[5]) / 2;
 
 				//Calculate standard deviation
 				for(double d : times) {
@@ -847,7 +836,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -866,7 +854,7 @@ public class Experiments {
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
 		data.add("HierarchizeOptimizedThreads");
-		data.add("Grid" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
 			for(int size = minSize; size <= maxSize; size++) {
@@ -875,7 +863,6 @@ public class Experiments {
 				else
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
-				totalTime = 0;
 				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
@@ -892,9 +879,10 @@ public class Experiments {
 					if(time > maxTime)
 						maxTime = time;
 					times[i] = time;
-					totalTime += time;
 				}
-				avgTime = totalTime / repititions;
+
+				Arrays.sort(times);
+				avgTime = (times[4] + times[5]) / 2;
 
 				//Calculate standard deviation
 				for(double d : times) {
@@ -917,7 +905,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -936,7 +923,7 @@ public class Experiments {
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
 		data.add("HierarchizeOptimizedThreadsNoUnroll");
-		data.add("Grid" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
 			for(int size = minSize; size <= maxSize; size++) {
@@ -945,7 +932,6 @@ public class Experiments {
 				else
 					cg = CombiGridBuilder.anisotropicGrid(size, dim);
 				double[] times = new double[repititions];
-				totalTime = 0;
 				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
@@ -962,9 +948,10 @@ public class Experiments {
 					if(time > maxTime)
 						maxTime = time;
 					times[i] = time;
-					totalTime += time;
 				}
-				avgTime = totalTime / repititions;
+
+				Arrays.sort(times);
+				avgTime = (times[4] + times[5]) / 2;
 
 				//Calculate standard deviation
 				for(double d : times) {
@@ -987,7 +974,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -1006,7 +992,7 @@ public class Experiments {
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
 		data.add("HierarchizeOptimizedThreads");
-		data.add("Grid" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
 			for(int size = minSize; size <= maxSize; size++) {
@@ -1015,7 +1001,6 @@ public class Experiments {
 				else
 					cg = CombiGridBuilder.anisotropicAlignedGrid(size, dim);
 				double[] times = new double[repititions];
-				totalTime = 0;
 				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
@@ -1032,9 +1017,10 @@ public class Experiments {
 					if(time > maxTime)
 						maxTime = time;
 					times[i] = time;
-					totalTime += time;
 				}
-				avgTime = totalTime / repititions;
+
+				Arrays.sort(times);
+				avgTime = (times[4] + times[5]) / 2;
 
 				//Calculate standard deviation
 				for(double d : times) {
@@ -1057,7 +1043,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -1076,7 +1061,7 @@ public class Experiments {
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
 		data.add("HierarchizeOptimizedThreadsOnce");
-		data.add("Grid" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
 			for(int size = minSize; size <= maxSize; size++) {
@@ -1085,7 +1070,6 @@ public class Experiments {
 				else
 					cg = CombiGridBuilder.anisotropicAlignedGrid(size, dim);
 				double[] times = new double[repititions];
-				totalTime = 0;
 				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
@@ -1102,9 +1086,10 @@ public class Experiments {
 					if(time > maxTime)
 						maxTime = time;
 					times[i] = time;
-					totalTime += time;
 				}
-				avgTime = totalTime / repititions;
+
+				Arrays.sort(times);
+				avgTime = (times[4] + times[5]) / 2;
 
 				//Calculate standard deviation
 				for(double d : times) {
@@ -1127,7 +1112,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -1146,7 +1130,7 @@ public class Experiments {
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
 		data.add("HierarchizeOptimizedTasks");
-		data.add("Grid" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
 			for(int size = minSize; size <= maxSize; size++) {
@@ -1155,7 +1139,6 @@ public class Experiments {
 				else
 					cg = CombiGridBuilder.anisotropicAlignedGrid(size, dim);
 				double[] times = new double[repititions];
-				totalTime = 0;
 				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
@@ -1172,9 +1155,10 @@ public class Experiments {
 					if(time > maxTime)
 						maxTime = time;
 					times[i] = time;
-					totalTime += time;
 				}
-				avgTime = totalTime / repititions;
+
+				Arrays.sort(times);
+				avgTime = (times[4] + times[5]) / 2;
 
 				//Calculate standard deviation
 				for(double d : times) {
@@ -1197,7 +1181,6 @@ public class Experiments {
 		long start;
 		long end;
 		double time;
-		double totalTime;
 		double avgTime;
 		double minTime;
 		double maxTime;
@@ -1216,7 +1199,7 @@ public class Experiments {
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
 		data.add("HierarchizeRecursiveThreads");
-		data.add("Grid" + '\t' + "Average" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
 			for(int size = minSize; size <= maxSize; size++) {
@@ -1226,7 +1209,6 @@ public class Experiments {
 					cg = CombiGridBuilder.anisotropicAlignedGrid(size, dim);
 				cg.recTile = cg.levels[0];
 				double[] times = new double[repititions];
-				totalTime = 0;
 				dev = 0;
 				minTime = Double.MAX_VALUE;
 				maxTime = Double.MIN_VALUE;
@@ -1243,9 +1225,10 @@ public class Experiments {
 					if(time > maxTime)
 						maxTime = time;
 					times[i] = time;
-					totalTime += time;
 				}
-				avgTime = totalTime / repititions;
+
+				Arrays.sort(times);
+				avgTime = (times[4] + times[5]) / 2;
 
 				//Calculate standard deviation
 				for(double d : times) {
