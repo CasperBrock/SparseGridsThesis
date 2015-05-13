@@ -11,17 +11,19 @@ public class ScalingTest {
 	public static void main(String[] args) {
 		//int[] levels = {8, 6, 5, 3, 2};
 		printInfo();
-		int[] levels = {6, 6, 6, 6, 6};
+		int[] levels = {5, 5, 5, 5, 5};
 		CombiGrid cg = new CombiGrid(levels);
 		CombiGridAligned cga = new CombiGridAligned(levels, 32);
-		test(cg, 10);
-		testOptimized(cg, 10);
-		testOptimized(cga, 10);
-		testOptimizedNoUnroll(cg, 10);
-		testThreads(cg, 10);
-		testOptimizedThreads(cg, 10);
-		testOptimizedThreads(cga, 10);
-		testOptimizedThreadsNoUnroll(cg, 10);
+		//test(cg, 10);
+		//testOptimized(cg, 10);
+		//testOptimized(cga, 10);
+		//testOptimizedNoUnroll(cg, 10);
+		//testThreads(cg, 10);
+		//testOptimizedThreads(cg, 10);
+		//testOptimizedThreads(cga, 10);
+		//testOptimizedThreadsNoUnroll(cg, 10);
+		testRecursive(cga, 10);
+		testRecursiveThread(cga, 10);
 		
 //		int[] levels2 = {10, 10};
 		//CombiGrid cg = new CombiGrid(levels);
@@ -778,6 +780,58 @@ public class ScalingTest {
 			}
 			avgTime = totalTime / repititions;
 			System.out.println("" + tasks + '\t' + avgTime);
+		}
+	}
+	
+	private static void testRecursive(CombiGridAligned cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeRecursive");
+		System.out.println("Run" + '\t' + "Time in ms");
+		
+		//Run for 1-32 threads
+		for(int threads = 1; threads <= 1; threads++) {
+			totalTime = 0;
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeRecursive();
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + threads + '\t' + avgTime);
+		}
+	}
+	
+	private static void testRecursiveThread(CombiGridAligned cg, int repititions) {
+		long start;
+		long end;
+		double time;
+		double totalTime;
+		double avgTime;
+
+		System.out.println("HierarchizeRecursiveThread");
+		System.out.println("Threads" + '\t' + "Time in ms");
+		
+		//Run for 1-32 threads
+		for(int threads = 1; threads <= 8; threads++) {
+			totalTime = 0;
+			for(int i = 0; i < repititions; i++) {
+				cg.setValues(GridFunctions.ALLONES);
+				start = System.currentTimeMillis();
+				cg.hierarchizeRecursiveThread(threads);
+				end = System.currentTimeMillis();
+				time = end - start;
+				totalTime += time;
+			}
+			avgTime = totalTime / repititions;
+			System.out.println("" + threads + '\t' + avgTime);
 		}
 	}
 	

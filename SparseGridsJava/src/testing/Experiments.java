@@ -588,7 +588,7 @@ public class Experiments {
 		cg.recTile = cg.levels[0];
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
-		data.add("HierarchizeRecursiveThreads");
+		data.add("HierarchizeRecursiveThread");
 		data.add("Grid: " + cg.getLevels());
 		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
@@ -601,7 +601,7 @@ public class Experiments {
 				try {Thread.sleep(1000);} catch (InterruptedException e) {}
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeRecursiveThreads(thread);
+				cg.hierarchizeRecursiveThread(thread);
 				end = System.currentTimeMillis();
 				time = end - start;
 				if(time < minTime)
@@ -622,7 +622,7 @@ public class Experiments {
 
 			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
 		}
-		writeToFile("Aligned RecursiveThreads Scaling " + cg.getLevels(), data);
+		writeToFile("Aligned RecursiveThread Scaling " + cg.getLevels(), data);
 	}
 
 	private static void UnoptimizedThreadsVaryingSize(int minSize, int maxSize, int repititions, int threads, boolean isotropic) {
@@ -1198,7 +1198,7 @@ public class Experiments {
 		CombiGridAligned cg;
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
-		data.add("HierarchizeRecursiveThreads");
+		data.add("HierarchizeRecursiveThread");
 		data.add("Grid" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		//Loop over dimensions
 		for(int dim = 2; dim <= 5; dim++) {
