@@ -925,7 +925,7 @@ public class CombiGridAligned {
 		}
 	}
 
-	public void hierarchizeRecursiveThread(int maxNumberOfThreads) { //Overall recursive call
+	public void hierarchizeRecursiveThread(final int maxNumberOfThreads) { //Overall recursive call
 		// this method starts the recursion, using the hierarchizeRec-call.
 
 		int centerInd[] = new int[dimensions];
@@ -945,7 +945,7 @@ public class CombiGridAligned {
 		hierarchizeRecThreads(0, dimensions, center, fullInterval, threadCounter, maxNumberOfThreads, true);
 	}
 
-	private void hierarchizeRecThreads(int s, int t, int center, int[] interval, AtomicInteger threadCounter, int maxNumberOfThreads, boolean newThread) {
+	private void hierarchizeRecThreads(int s, int t, int center, int[] interval, AtomicInteger threadCounter, final int maxNumberOfThreads, boolean newThread) {
 		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
 
 		int[] ic = interval.clone();
@@ -1116,6 +1116,10 @@ public class CombiGridAligned {
 			final int se = s;
 			final int te = t;
 			final int dis = dist;
+			final int cent = center;
+			final int[] left = leftI;
+			final int[] right = ic;
+			final int[] mid = midI;
 			Thread thread1 = null;
 			Thread thread2 = null;
 			
@@ -1124,23 +1128,23 @@ public class CombiGridAligned {
 				//Make a new thread, increment counter and start it
 				threadCounter.getAndIncrement();
 				thread1 = new Thread(new Runnable() { public void run() {
-					hierarchizeRecThreads(se, te, center - dis, leftI, threadCounter, maxNumberOfThreads, true);
+					hierarchizeRecThreads(se, te, cent - dis, left, threadCounter, maxNumberOfThreads, true);
 				}});
 				thread1.start();
 			}
 			else 
-				hierarchizeRecThreads(se, te, center - dis, leftI, threadCounter, maxNumberOfThreads, false);
+				hierarchizeRecThreads(se, te, cent - dis, left, threadCounter, maxNumberOfThreads, false);
 			
 			if(r != 0 && threadCounter.get() < maxNumberOfThreads) {
 				//Make a new thread, increment counter and start it
 				threadCounter.getAndIncrement();
 				thread2 = new Thread(new Runnable() { public void run() {
-					hierarchizeRecThreads(se, te, center + dis, ic, threadCounter, maxNumberOfThreads, true);
+					hierarchizeRecThreads(se, te, cent + dis, right, threadCounter, maxNumberOfThreads, true);
 				}});
 				thread2.start();
 			}
 			else
-				hierarchizeRecThreads(se, te, center + dis, ic, threadCounter, maxNumberOfThreads, false);
+				hierarchizeRecThreads(se, te, cent + dis, right, threadCounter, maxNumberOfThreads, false);
 			
 			if(thread1 != null)
 				try { thread1.join();} catch (InterruptedException e) {}
