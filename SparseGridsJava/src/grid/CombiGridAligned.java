@@ -1181,7 +1181,7 @@ public class CombiGridAligned {
 		hierarchizeRecThreads(0, dimensions, center, fullInterval, 0, maxRecLevel);
 	}
 
-	private void hierarchizeRecThreads(int s, int t, int center, int[] interval, int recLevel, int maxRecLevel) {
+	private void hierarchizeRecThreads(int s, int t, int center, int[] interval, final int recLevel, final int maxRecLevel) {
 		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
 
 		int[] ic = interval.clone();
