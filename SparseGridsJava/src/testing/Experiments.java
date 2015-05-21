@@ -43,26 +43,26 @@ public class Experiments {
 	}
 
 	public static void scalingExperiment(int size, int dim, int rep, int min, int max, boolean iso) {
-		UnoptimizedThreadsScaling(size, dim, rep, min, max, iso);
-		UnoptimizedThreadsOnceScaling(size, dim, rep, min, max, iso);
-		UnoptimizedTasksScaling(size, dim, rep, min, max, iso);
-		OptimizedThreadsScaling(size, dim, rep, min, max, iso);
-		OptimizedThreadsNoUnrollScaling(size, dim, rep, min, max, iso);
-		AlignedThreadsScaling(size, dim, rep, min, max, iso);
-		AlignedThreadsOnceScaling(size, dim, rep, min, max, iso);
-		AlignedTasksScaling(size, dim, rep, min, max, iso);
+		//UnoptimizedThreadsScaling(size, dim, rep, min, max, iso);
+		//UnoptimizedThreadsOnceScaling(size, dim, rep, min, max, iso);
+		//UnoptimizedTasksScaling(size, dim, rep, min, max, iso);
+		//OptimizedThreadsScaling(size, dim, rep, min, max, iso);
+		//OptimizedThreadsNoUnrollScaling(size, dim, rep, min, max, iso);
+		//AlignedThreadsScaling(size, dim, rep, min, max, iso);
+		//AlignedThreadsOnceScaling(size, dim, rep, min, max, iso);
+		//AlignedTasksScaling(size, dim, rep, min, max, iso);
 		RecursiveScaling(size, dim, rep, min, max, iso);
 	}
 
 	public static void varyingSizeExperiment(int minSize, int maxSize, int rep, int threads, boolean iso) {
-		UnoptimizedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
-		UnoptimizedThreadsOnceVaryingSize(minSize, maxSize, rep, threads, iso);
-		UnoptimizedTasksVaryingSize(minSize, maxSize, rep, threads, iso);
-		OptimizedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
-		OptimizedThreadsNoUnrollVaryingSize(minSize, maxSize, rep, threads, iso);
-		AlignedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
-		AlignedThreadsOnceVaryingSize(minSize, maxSize, rep, threads, iso);
-		AlignedTasksVaryingSize(minSize, maxSize, rep, threads, iso);
+		//UnoptimizedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
+		//UnoptimizedThreadsOnceVaryingSize(minSize, maxSize, rep, threads, iso);
+		//UnoptimizedTasksVaryingSize(minSize, maxSize, rep, threads, iso);
+		//OptimizedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
+		//OptimizedThreadsNoUnrollVaryingSize(minSize, maxSize, rep, threads, iso);
+		//AlignedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
+		//AlignedThreadsOnceVaryingSize(minSize, maxSize, rep, threads, iso);
+		//AlignedTasksVaryingSize(minSize, maxSize, rep, threads, iso);
 		RecursiveVaryingSize(minSize, maxSize, rep, threads, iso);
 	}
 
@@ -373,7 +373,7 @@ public class Experiments {
 
 			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
 		}
-		writeToFile("OptimizedThreadsUnroll Scaling " + cg.getLevels(), data);
+		writeToFile("OptimizedThreadsNoUnroll Scaling " + cg.getLevels(), data);
 	}
 
 	private static void AlignedThreadsScaling(int size, int dimensions, int repititions, int minNumberOfThreads, int maxNumberOfThreads, boolean isotropic) {
@@ -575,7 +575,7 @@ public class Experiments {
 		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
 		for(int i = 0; i < 10000; i++) {
 			grid.setValues(GridFunctions.ALLONES);
-			grid.hierarchizeRecursiveThreads(16);
+			grid.hierarchizeRecursiveThreads(4);
 		}
 		grid = null;
 		System.gc();
@@ -588,7 +588,7 @@ public class Experiments {
 		cg.recTile = cg.levels[0];
 		List<String> data = new LinkedList<String>();
 		data.add(PCInfo());
-		data.add("HierarchizeRecursiveThread");
+		data.add("HierarchizeRecursiveThreads");
 		data.add("Grid: " + cg.getLevels());
 		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
@@ -601,7 +601,7 @@ public class Experiments {
 				try {Thread.sleep(1000);} catch (InterruptedException e) {}
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeRecursiveThread(thread);
+				cg.hierarchizeRecursiveThreads(thread);
 				end = System.currentTimeMillis();
 				time = end - start;
 				if(time < minTime)
@@ -622,7 +622,7 @@ public class Experiments {
 
 			data.add("" + thread + '\t' + avgTime + '\t' + minTime + '\t' + maxTime + '\t' + dev);
 		}
-		writeToFile("Aligned RecursiveThread Scaling " + cg.getLevels(), data);
+		writeToFile("Aligned RecursiveThreads Scaling " + cg.getLevels(), data);
 	}
 
 	private static void UnoptimizedThreadsVaryingSize(int minSize, int maxSize, int repititions, int threads, boolean isotropic) {
@@ -1190,7 +1190,7 @@ public class Experiments {
 		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
 		for(int i = 0; i < 10000; i++) {
 			grid.setValues(GridFunctions.ALLONES);
-			grid.hierarchizeRecursiveThreads(16);
+			grid.hierarchizeRecursiveThreads(4);
 		}
 		grid = null;
 		System.gc();
@@ -1217,7 +1217,7 @@ public class Experiments {
 					try {Thread.sleep(1000);} catch (InterruptedException e) {}
 					cg.setValues(GridFunctions.ALLONES);
 					start = System.currentTimeMillis();
-					cg.hierarchizeRecursiveThreads(threads);
+					cg.hierarchizeRecursiveThreads(3);
 					end = System.currentTimeMillis();
 					time = end - start;
 					if(time < minTime)

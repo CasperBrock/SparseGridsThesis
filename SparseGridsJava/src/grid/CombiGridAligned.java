@@ -44,7 +44,7 @@ public class CombiGridAligned {
 		}*/
 		grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimized(4);
-		grid2.hierarchizeRecursiveThread(10);
+		grid2.hierarchizeRecursiveThreads(10);
 		//grid2.hierarchizeOptimizedThreads(32);
 		grid.setValues(GridFunctions.ALLONES);
 		grid.hierarchizeRecursive();
@@ -925,7 +925,7 @@ public class CombiGridAligned {
 		}
 	}
 
-	public void hierarchizeRecursiveThread(final int maxNumberOfThreads) { //Overall recursive call
+	public void hierarchizeRecursiveThreads(final int maxNumberOfThreads) { //Overall recursive call
 		// this method starts the recursion, using the hierarchizeRec-call.
 
 		int centerInd[] = new int[dimensions];
@@ -1159,6 +1159,235 @@ public class CombiGridAligned {
 		threadCounter.getAndDecrement();
 		}
 	}
+	
+	//Assume 4 threads is optimal
+	public void hierarchizeRecursiveThreadsFixed(int maxRecLevel) { //Overall recursive call
+		// this method starts the recursion, using the hierarchizeRec-call.
+
+		int centerInd[] = new int[dimensions];
+		int[] fullInterval = new int[8];
+		for(int i = 0; i < dimensions; i++) {
+			fullInterval[i] = levels[i] - 1; // boundary need not be split away
+			centerInd[i] = myPow2(levels[i] - 1) - 1;
+		}
+
+		fullInterval[6] = 0 ; // no predecessors to the left
+		fullInterval[7] = 0 ; // no predecessors to the right
+		int center = pos(centerInd);
+
+		final AtomicInteger threadCounter = new AtomicInteger();
+		//We are already using 1 thread
+		threadCounter.getAndIncrement();
+		hierarchizeRecThreads(0, dimensions, center, fullInterval, 0, maxRecLevel);
+	}
+
+	private void hierarchizeRecThreads(int s, int t, int center, int[] interval, int recLevel, int maxRecLevel) {
+		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
+
+		int[] ic = interval.clone();
+
+		int localSize = 0; // sum of levels
+		for (int i = 1; i < dimensions; i++) {
+			if(ic[i] > 0) {
+				localSize += ic[i];
+			}
+		}
+
+		if(localSize == 0) { // singleton cache line
+			if(ic[0] <= 0) { // real singleton
+				for(int i = s; i < t; i++) { 
+					int rmask = myPow2(i);
+					int dist = myPow2(-ic[i]);
+					double lVal, rVal;
+					int posLeft, posRight;
+					if((ic[6] & rmask) !=0) { //Checks if the bitwise combination equals to 1.
+						posLeft = center - dist*strides[i];
+						lVal = grid[posLeft];
+					}
+
+					else {
+						posLeft = -1;
+						lVal = 0.0;
+					}
+
+					if((ic[7] & rmask) !=0) {
+						posRight = center + dist*strides[i];
+						rVal = grid[posRight];
+					}
+
+					else {
+						posRight = -1;
+						rVal = 0.0;
+					}
+
+					grid[center] = stencil(grid[center], lVal, rVal);
+				}
+			} 
+
+			else {
+				if( s == 0 ) { // actually hierarchize in dir 0
+					int rmask = (1 << 0);
+					int dist = myPow2(ic[0]);
+					double leftBdVal, rightBdVal;
+					int leftBdPos, rightBdPos;
+					if((ic[6] & rmask) !=0) {
+						leftBdPos = center - dist;
+						leftBdVal = grid[leftBdPos];
+					}
+
+					else {
+						leftBdPos = -1;
+						leftBdVal = 0.0;
+					}
+
+					if((ic[7] & rmask) != 0) {
+						rightBdPos = center + dist;
+						rightBdVal = grid[rightBdPos];
+					}
+
+					else {
+						rightBdPos = -1;
+						rightBdVal = 0.0;
+					}
+
+					int step = 1;
+					while(step < dist) {
+						int start = center - dist + step;
+
+						grid[(start)] = stencil(grid[start], leftBdVal, grid[(start + step)]);
+
+						start += 2*step;
+						while( start < center + dist - step ) {
+
+							grid[start] = stencil(grid[start],grid[start-step],grid[start+step]);
+							start += 2*step;
+						}
+
+						assert( start == center+dist-step );
+						grid[start] = stencil(grid[start], grid[start-step], rightBdVal);
+						step *= 2;
+					}
+
+					grid[(center)] = stencil(grid[center], leftBdVal, rightBdVal);
+					s = 1; // hierarchized in dim 0
+				}
+
+				int d0dist = myPow2(ic[0]);
+				int first = - d0dist +1;
+				int last = + d0dist -1;
+				for(int dim=s; dim<t; dim++) {
+					int rmask = (1 << dim);
+					int dist = myPow2(-ic[dim]);
+					if(((ic[6] & rmask) !=0) && ((ic[7] & rmask) != 0)) {
+						for(int i = first; i <= last - 3; i += 4) {
+							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
+						}
+						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,true,dim);
+					}
+
+					if(((ic[6] & rmask) !=0) && ((ic[7] & rmask) ==0)) {
+						for(int i=first; i<= last-3; i+= 4) {
+							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,false,dim);
+						}
+						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],true,false,dim);
+					}
+					if(((ic[6] & rmask) == 0) && ((ic[7] & rmask) !=0)) {
+						for(int i=first; i<= last-3; i+= 4) {
+							hierarchizeApplyStencil4v4(center+i, dist*strides[dim],false,true,dim);
+						}
+						hierarchizeApplyStencil3v4(center+last-2, dist*strides[dim],false,true,dim);
+					} 
+				}
+			}
+		}
+
+		else { 
+			int r = 0;
+			int maxl = ic[0];
+			for(int i = 1; i < dimensions; i++) {
+				if(ic[i] > maxl) {
+					r = i;
+					maxl = ic[i];
+				}
+			}
+			//ic used as right interval
+			int[] midI, leftI;
+			midI = ic.clone();
+			midI[r] = -midI[r];
+			ic[r]--;
+			int dist = myPow2(ic[r]);
+			leftI = ic.clone();
+			int rmask = myPow2(r);
+			ic[6] |= rmask;
+			leftI[7] |= rmask;
+			dist *= strides[r];
+			if(r < s) r = s;
+			if(r > t) r = t;
+
+			/*if(threadCounter.get() < maxNumberOfThreads) {
+				//Make a new thread, increment counter and start it
+				threadCounter.getAndIncrement();
+				final int re = r;
+				final int se = s;
+				final int te = t;
+				final int dis = dist;
+				Thread thread = new Thread(new Runnable() { public void run() {
+					if(re > se) { hierarchizeRecThreads(se, re, center, midI, threadCounter, maxNumberOfThreads); }
+					hierarchizeRecThreads(se, te, center - dis, leftI, threadCounter, maxNumberOfThreads);
+					hierarchizeRecThreads(se, te, center + dis, ic, threadCounter, maxNumberOfThreads);
+					if(te > re) { hierarchizeRecThreads(re, te, center, midI, threadCounter, maxNumberOfThreads); }
+				}});
+
+				thread.start();
+			}
+
+			else {
+				if(r > s) { hierarchizeRecThreads(s, r, center, midI, threadCounter, maxNumberOfThreads); }
+				hierarchizeRecThreads(s, t, center - dist, leftI, threadCounter, maxNumberOfThreads);
+				hierarchizeRecThreads(s, t, center + dist, ic, threadCounter, maxNumberOfThreads);
+				if(t > r) { hierarchizeRecThreads(r, t, center, midI, threadCounter, maxNumberOfThreads); }
+			}*/
+			if(r > s) hierarchizeRecThreads(s, r, center, midI, recLevel + 1, maxRecLevel);
+			
+			final int se = s;
+			final int te = t;
+			final int dis = dist;
+			final int cent = center;
+			final int[] left = leftI;
+			final int[] right = ic;
+			final int[] mid = midI;
+			Thread thread1 = null;
+			Thread thread2 = null;
+			
+			//Threading stuff here
+			if(r != 0 && recLevel < maxRecLevel) {
+				//Make a new thread, increment counter and start it
+				thread1 = new Thread(new Runnable() { public void run() {
+					hierarchizeRecThreads(se, te, cent - dis, left, recLevel + 1, maxRecLevel);
+				}});
+				thread1.start();
+			}
+			else 
+				hierarchizeRec(se, te, cent - dis, left);
+			
+			if(r != 0 && recLevel < maxRecLevel) {
+				//Make a new thread, increment counter and start it
+				thread2 = new Thread(new Runnable() { public void run() {
+					hierarchizeRecThreads(se, te, cent + dis, right, recLevel + 1, maxRecLevel);
+				}});
+				thread2.start();
+			}
+			else
+				hierarchizeRec(se, te, cent + dis, right);
+			
+			if(thread1 != null)
+				try { thread1.join();} catch (InterruptedException e) {}
+			if(thread2 != null)
+				try { thread2.join();} catch (InterruptedException e) {}
+			
+			if(t > r) hierarchizeRecThreads(r, t, center, midI, recLevel + 1, maxRecLevel);
+		}
+	}
 
 	/**
 	 * Hierachizes the grid using a recursive algorithm. This method uses the Java Fork/Join framework to perform
@@ -1166,7 +1395,7 @@ public class CombiGridAligned {
 	 * 
 	 * @param NumberOfMaxThreads The number of threads to use for the parallelisation
 	 */
-	public void hierarchizeRecursiveThreads(int NumberOfMaxThreads){ //Overall threaded recursive call
+	public void hierarchizeRecursiveForkJoin(int NumberOfMaxThreads){ //Overall threaded recursive call
 		// this method starts the recursion, using the hierarchizeRec-call.
 		//It uses Javas inbuilt threaded recursion-system, which maintains a threadpool.
 		ForkJoinPool pool = new ForkJoinPool(NumberOfMaxThreads); //For starting and distributing the tasks.
