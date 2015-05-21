@@ -41,8 +41,8 @@ object experiments {
       } else 
 			    println("Running test "+testName+" with minSize " + minSize + ", and maxSize " + maxSize);
 
-			hierarchizeVarSizeExperiment(minSize, maxSize, 10, true); //run varying size on both iso and anisotropic grids.
-			hierarchizeVarSizeExperiment(minSize, maxSize, 10, false);
+//			hierarchizeVarSizeExperiment(minSize, maxSize, 10, true); //run varying size on both iso and anisotropic grids.
+//			hierarchizeVarSizeExperiment(minSize, maxSize, 10, false);
 			recursiveVarSizeExperiment(minSize, maxSize, 10, true);
 			recursiveVarSizeExperiment(minSize, maxSize, 10, false);
       println("All tests finished.")
@@ -355,6 +355,7 @@ object experiments {
 			var totalTime: Long = 0;
 
 			for(i <- 0 to repititions-1 by 1) {
+        
 				System.gc();
 				try {Thread.sleep(1000);} catch {
 				case e: InterruptedException => println("error: " + e)

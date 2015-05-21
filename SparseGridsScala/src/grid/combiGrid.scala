@@ -4,7 +4,7 @@ package grid
 
 import scala.concurrent._
 import scala.collection.Parallel
-//import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.parallel.mutable.ParSeq
 import scala.collection.parallel.mutable.ParArray
 
@@ -13,18 +13,18 @@ object CombiGrid {
 	//TODO thread the unidirectional as in parallelstream (divide each poleblock into a thread.)
 	//global variables:
 	var levels:Array[Int] = Array(0);
-var dimensions:Int = 0;
-var grid:ParArray[Double] = ParArray(0);
-var gridSize:Int = 0;
-var pointsPerDimension:Array[Int] = Array(0);
-var strides:Array[Int]=Array(0);
+  var dimensions:Int = 0;
+  var grid:ParArray[Double] = ParArray(0);
+  var gridSize:Int = 0;
+  var pointsPerDimension:Array[Int] = Array(0);
+  var strides:Array[Int]=Array(0);
 
 
 //Variables for the recursion:
 var recTile=5; //Some values are hard coded in the original.
 val recTallPar=0.3; 
-val recMaxSpawn=14; //Public, for varying within the test.
-val recMinSpawn=13; //Public, for varying within the test.
+val recMaxSpawn=3; //Public, for varying within the test.
+val recMinSpawn=2; //Public, for varying within the test.
 var rf:Array[Float]=Array(0);
 
 
@@ -99,7 +99,7 @@ def compare(grid2:ParArray[Double]): Boolean = { //Compares two grids
 def CombiGrid(levelsInput: Array[Int]){
   levels = levelsInput.clone();
   
-  recTile = levels(0);
+  recTile = levels(0); //Important for the recursive algorithms speed.
   
 	dimensions = levelsInput.length;
 	pointsPerDimension = new Array[Int](dimensions);
@@ -434,27 +434,38 @@ class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) 
           val cOut = center;
           
 					if ((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && r!=0){
-						if(r > s) {
-              val t1 = new Thread (
-                new hierRecThreads(sOut, rOut, cOut, midI, level + 1))
-                  .run()
+          System.out.println("Inside recursion");
+          if(r > s) {
+//              val t1 = new Thread (
+                new hierRecThreads(sOut, rOut, cOut, midI, level + 1).run();
+//                  .run()
 						}
             
-            val t2 = new Thread (
-                new hierRecThreads(sOut, tOut, cOut - dist, leftI, level + 1))
-                  .run()
+          
+            val t2 = Future{new hierRecThreads(sOut, tOut, cOut - dist, leftI, level + 1).run()}
+//            val t2 = new Thread (
+//                new hierRecThreads(sOut, tOut, cOut - dist, leftI, level + 1))
+//                  .start()
               
-            
-            val t3 = new Thread (
-                new hierRecThreads(sOut, tOut, cOut + dist, ic, level + 1))
-                  .run()
-             							 
+            val t3 = Future{new hierRecThreads(sOut, tOut, cOut + dist, ic, level + 1).run()}
+//            val t3 = new Thread (
+//                new hierRecThreads(sOut, tOut, cOut + dist, ic, level + 1))
+//                  .start()
+           
+            val waitTuple = for{ //This simply ensures that we wait for both actions to complete, before continuing.
+              t2Done <- t2
+              t3Done <- t3
+            }
 
-						if (t > r) {
-              val t4 = new Thread (
-                new hierRecThreads(rOut, tOut, cOut, midI, level + 1))
-                  .run()						
-						} 
+            if (t > r) {
+                new hierRecThreads(rOut, tOut, cOut, midI, level + 1).run();          
+            } 
+            
+//						if (t > r) {
+//              //val t4 = new Thread (
+//                new hierRecThreads(rOut, tOut, cOut, midI, level + 1).run();
+//             //     .run()						
+//						} 
 					} else { //don't run in seperate threads.
 						if(r > s) hierarchizeRec(sOut, rOut, cOut, midI, 0);
 						hierarchizeRec(sOut, tOut, cOut - dist, leftI, 0);
