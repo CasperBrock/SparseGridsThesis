@@ -575,7 +575,7 @@ public class Experiments {
 		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
 		for(int i = 0; i < 10000; i++) {
 			grid.setValues(GridFunctions.ALLONES);
-			grid.hierarchizeRecursiveThreadsFixed(3);
+			grid.hierarchizeRecursiveThreads(3);
 		}
 		grid = null;
 		System.gc();
@@ -601,7 +601,7 @@ public class Experiments {
 				try {Thread.sleep(1000);} catch (InterruptedException e) {}
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeRecursiveThreadsFixed(thread);
+				cg.hierarchizeRecursiveThreads(thread);
 				end = System.currentTimeMillis();
 				time = end - start;
 				if(time < minTime)
@@ -1190,7 +1190,7 @@ public class Experiments {
 		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
 		for(int i = 0; i < 10000; i++) {
 			grid.setValues(GridFunctions.ALLONES);
-			grid.hierarchizeRecursiveThreadsFixed(3);
+			grid.hierarchizeRecursiveThreads(3);
 		}
 		grid = null;
 		System.gc();
@@ -1217,7 +1217,7 @@ public class Experiments {
 					try {Thread.sleep(1000);} catch (InterruptedException e) {}
 					cg.setValues(GridFunctions.ALLONES);
 					start = System.currentTimeMillis();
-					cg.hierarchizeRecursiveThreadsFixed(3);
+					cg.hierarchizeRecursiveThreads(3);
 					end = System.currentTimeMillis();
 					time = end - start;
 					if(time < minTime)
