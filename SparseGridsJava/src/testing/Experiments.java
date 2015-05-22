@@ -575,7 +575,7 @@ public class Experiments {
 		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
 		for(int i = 0; i < 10000; i++) {
 			grid.setValues(GridFunctions.ALLONES);
-			grid.hierarchizeRecursiveThreads(4);
+			grid.hierarchizeRecursiveThreadsFixed(3);
 		}
 		grid = null;
 		System.gc();
@@ -590,7 +590,7 @@ public class Experiments {
 		data.add(PCInfo());
 		data.add("HierarchizeRecursiveThreads");
 		data.add("Grid: " + cg.getLevels());
-		data.add("Threads" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
+		data.add("RecLevel" + '\t' + "Mean" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev");
 		for(int thread = minNumberOfThreads; thread <= maxNumberOfThreads; thread++) {
 			double[] times = new double[repititions];
 			dev = 0;
@@ -601,7 +601,7 @@ public class Experiments {
 				try {Thread.sleep(1000);} catch (InterruptedException e) {}
 				cg.setValues(GridFunctions.ALLONES);
 				start = System.currentTimeMillis();
-				cg.hierarchizeRecursiveThreads(thread);
+				cg.hierarchizeRecursiveThreadsFixed(thread);
 				end = System.currentTimeMillis();
 				time = end - start;
 				if(time < minTime)
@@ -1190,7 +1190,7 @@ public class Experiments {
 		CombiGridAligned grid = CombiGridBuilder.isotropicAlignedGrid(15, 3);
 		for(int i = 0; i < 10000; i++) {
 			grid.setValues(GridFunctions.ALLONES);
-			grid.hierarchizeRecursiveThreads(4);
+			grid.hierarchizeRecursiveThreadsFixed(3);
 		}
 		grid = null;
 		System.gc();
@@ -1217,7 +1217,7 @@ public class Experiments {
 					try {Thread.sleep(1000);} catch (InterruptedException e) {}
 					cg.setValues(GridFunctions.ALLONES);
 					start = System.currentTimeMillis();
-					cg.hierarchizeRecursiveThreads(3);
+					cg.hierarchizeRecursiveThreadsFixed(3);
 					end = System.currentTimeMillis();
 					time = end - start;
 					if(time < minTime)

@@ -10,6 +10,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 
 import gridFunctions.GridFunction;
 import gridFunctions.GridFunctions;
@@ -44,7 +45,7 @@ public class CombiGridAligned {
 		}*/
 		grid2.setValues(GridFunctions.ALLONES);
 		//grid2.hierarchizeOptimized(4);
-		grid2.hierarchizeRecursiveThreads(10);
+		grid2.hierarchizeOptimized();
 		//grid2.hierarchizeOptimizedThreads(32);
 		grid.setValues(GridFunctions.ALLONES);
 		grid.hierarchizeRecursive();
@@ -745,8 +746,6 @@ public class CombiGridAligned {
 	private int pos( int index[]){
 		int retPos = 0;
 		for(int i =0; i< dimensions; i++) {
-			assert( index[i] < pointsPerDimension[i] );
-			assert( 0 <= index[i] );
 			retPos += index[i]*strides[i];
 		}
 		return retPos;
@@ -754,31 +753,38 @@ public class CombiGridAligned {
 
 
 	private double stencil( double center, double left, double right) { return center - .5*left -.5* right;};
+	
+	private int[] copy(int[] old) {
+		int[] ne = new int[old.length];
+		for(int i = 0; i < old.length; i++)
+			ne[i] = old[i];
+		return ne;
+	}
 
 	/**
 	 * Hierachizes the grid using a recursive algorithm.
 	 */
 	public void hierarchizeRecursive() { //Overall recursive call
 		// this method starts the recursion, using the hierarchizeRec-call.
-
 		int centerInd[] = new int[dimensions];
 		int[] fullInterval = new int[8];
 		for(int i = 0; i < dimensions; i++) {
 			fullInterval[i] = levels[i] - 1; // boundary need not be split away
 			centerInd[i] = myPow2(levels[i] - 1) - 1;
 		}
-
 		fullInterval[6] = 0 ; // no predecessors to the left
 		fullInterval[7] = 0 ; // no predecessors to the right
 		int center = pos(centerInd);
-		hierarchizeRec(0, dimensions, center, fullInterval);
+		LongAdder counter = new LongAdder();
+		hierarchizeRec(0, dimensions, center, fullInterval, counter);
+		System.out.println("Counter: " + counter.longValue());
 
 	}
 
-	private void hierarchizeRec(int s, int t, int center, int[] interval) {
+	private void hierarchizeRec(int s, int t, int center, int[] ic, LongAdder counter) {
 		//This is the recursive code. This method calls itself, and the hierarchizeApplyStencil4v4, when divided completely.
 
-		int[] ic = interval.clone();
+		//int[] ic = interval.clone();
 
 		int localSize = 0; // sum of levels
 		for (int i = 1; i < dimensions; i++) {
@@ -788,6 +794,7 @@ public class CombiGridAligned {
 		}
 
 		if(localSize == 0) { // singleton cache line
+			long startTime = System.currentTimeMillis();
 			if(ic[0] <= 0) { // real singleton
 				for(int i = s; i < t; i++) { 
 					int rmask = myPow2(i);
@@ -857,7 +864,6 @@ public class CombiGridAligned {
 							start += 2*step;
 						}
 
-						assert( start == center+dist-step );
 						grid[start] = stencil(grid[start], grid[start-step], rightBdVal);
 						step *= 2;
 					}
@@ -893,9 +899,14 @@ public class CombiGridAligned {
 					} 
 				}
 			}
+			
+			long endTime = System.currentTimeMillis();
+			long time = endTime - startTime;
+			counter.add(time);
 		}
 
-		else { 
+		else {
+			long startTime = System.currentTimeMillis();
 			int r = 0;
 			int maxl = ic[0];
 			for(int i = 1; i < dimensions; i++) {
@@ -906,11 +917,13 @@ public class CombiGridAligned {
 			}
 			//ic used as right interval
 			int[] midI, leftI;
-			midI = ic.clone();
+			//midI = ic.clone();
+			midI = copy(ic);
 			midI[r] = -midI[r];
 			ic[r]--;
 			int dist = myPow2(ic[r]);
-			leftI = ic.clone();
+			//leftI = ic.clone();
+			leftI = copy(ic);
 			int rmask = myPow2(r);
 			ic[6] |= rmask;
 			leftI[7] |= rmask;
@@ -918,10 +931,15 @@ public class CombiGridAligned {
 			if(r < s) r = s;
 			if(r > t) r = t;
 
-			if(r > s) { hierarchizeRec(s, r, center, midI); }
-			hierarchizeRec(s, t, center - dist, leftI);
-			hierarchizeRec(s, t, center + dist, ic);
-			if(t > r) { hierarchizeRec(r, t, center, midI); }
+			int[] midIHigh = copy(midI);
+			long endTime = System.currentTimeMillis();
+			long time = endTime - startTime;
+			counter.add(time);
+			
+			if(r > s) { hierarchizeRec(s, r, center, midI, counter); }
+			hierarchizeRec(s, t, center - dist, leftI, counter);
+			hierarchizeRec(s, t, center + dist, ic, counter);
+			if(t > r) { hierarchizeRec(r, t, center, midIHigh, counter); }
 		}
 	}
 
@@ -1027,7 +1045,6 @@ public class CombiGridAligned {
 							start += 2*step;
 						}
 
-						assert( start == center+dist-step );
 						grid[start] = stencil(grid[start], grid[start-step], rightBdVal);
 						step *= 2;
 					}
@@ -1160,7 +1177,6 @@ public class CombiGridAligned {
 		}
 	}
 	
-	//Assume 4 threads is optimal
 	public void hierarchizeRecursiveThreadsFixed(int maxRecLevel) { //Overall recursive call
 		// this method starts the recursion, using the hierarchizeRec-call.
 
@@ -1263,7 +1279,6 @@ public class CombiGridAligned {
 							start += 2*step;
 						}
 
-						assert( start == center+dist-step );
 						grid[start] = stencil(grid[start], grid[start-step], rightBdVal);
 						step *= 2;
 					}
@@ -1368,7 +1383,7 @@ public class CombiGridAligned {
 				thread1.start();
 			}
 			else 
-				hierarchizeRec(se, te, cent - dis, left);
+				hierarchizeRec(se, te, cent - dis, left, null);
 			
 			if(r != 0 && recLevel < maxRecLevel) {
 				//Make a new thread, increment counter and start it
@@ -1378,7 +1393,7 @@ public class CombiGridAligned {
 				thread2.start();
 			}
 			else
-				hierarchizeRec(se, te, cent + dis, right);
+				hierarchizeRec(se, te, cent + dis, right, null);
 			
 			if(thread1 != null)
 				try { thread1.join();} catch (InterruptedException e) {}
@@ -1514,7 +1529,6 @@ public class CombiGridAligned {
 								start += 2*step;
 							}
 
-							assert( start == center+dist-step );
 							grid[start] = stencil(grid[start], grid[start-step], rightBdVal);
 							step *= 2;
 						}
@@ -1529,8 +1543,6 @@ public class CombiGridAligned {
 					for(int dim=s; dim<t; dim++) {
 						int rmask = (1 << dim); // replace by iterative?
 						int dist = myPow2(-ic[dim]);
-						assert(0== (center+first) %4 );
-						assert(2== (center+last) %4 );
 						if(((ic[6] & rmask)) !=0 && (ic[7] & rmask) != 0) {
 							for(int i = first; i <= last - 3; i += 4) {
 								hierarchizeApplyStencil4v4(center+i, dist*strides[dim],true,true,dim);
@@ -1616,10 +1628,10 @@ public class CombiGridAligned {
 				} //Recursive threading stops here. The following lines are for the last recursions.
 
 				else {
-					if(r > s) hierarchizeRec(s, r, center, midI);
-					hierarchizeRec(s, t, center - dist, leftI);
-					hierarchizeRec(s, t, center + dist, ic);
-					if(t > r) hierarchizeRec(r, t, center, midI);
+					if(r > s) hierarchizeRec(s, r, center, midI, null);
+					hierarchizeRec(s, t, center - dist, leftI, null);
+					hierarchizeRec(s, t, center + dist, ic, null);
+					if(t > r) hierarchizeRec(r, t, center, midI, null);
 				}
 			}
 		}
@@ -1693,7 +1705,7 @@ public class CombiGridAligned {
 		}
 	}
 
-	public void hierarchizeApplyStencil3v4(int center, int offset, boolean left, boolean right, int r ) {
+	private void hierarchizeApplyStencil3v4(int center, int offset, boolean left, boolean right, int r ) {
 		double val1, val2, val3, temp1 = 0.0, temp2 = 0.0, temp3 = 0.0,
 				right1 = 0.0, right2 = 0.0, right3 = 0.0, left1 = 0.0, left2 = 0.0, left3 = 0.0;
 		int pLeft = center - offset;
