@@ -10,7 +10,7 @@ import java.io.IOException
 import scala.collection.immutable.List
 import scala.collection.mutable.ListBuffer
 
-class experiments {
+object experiments {
 
   /**
    * First parameter is max size, second parameter is max threads
@@ -18,6 +18,7 @@ class experiments {
    */
   var testName:String="UnsetTestName";
   
+
 	def main(args: Array[String]) : Unit = {    
  
       //Input handling
@@ -136,7 +137,7 @@ class experiments {
   	for(j <- 0 to 9999 by 1) {
 	  	CombiGrid.CombiGrid(buildLevelVector(15, 2, true)); //Create
 		  CombiGrid.FillCurrentGridWithOnes();                 //Fill
-		  CombiGrid.hierarchizeUnoptimized();                  //Run
+		  CombiGrid.hierarchizeOptimized();                  //Run
 	  }
 	  System.gc();
 
@@ -155,7 +156,7 @@ class experiments {
 				  CombiGrid.CombiGrid(buildLevelVector(size, dim, isotropic)); //Create
 				  CombiGrid.FillCurrentGridWithOnes();                 //Fill
 				  var start = System.currentTimeMillis();
-				  CombiGrid.hierarchizeUnoptimized();                  //Run
+				  CombiGrid.hierarchizeOptimized();                  //Run
 				  var end = System.currentTimeMillis();
 				  var time = end - start;
 				  if(time < minTime) {
@@ -276,10 +277,10 @@ class experiments {
 	for(i <- 0 to 9999 by 1) {
 		CombiGrid.CombiGrid(buildLevelVector(15, 2, false)); //Create
 		CombiGrid.FillCurrentGridWithOnes();                 //Fill
-		CombiGrid.hierarchizeUnoptimized();                  //Run
+		CombiGrid.hierarchizeOptimized();                  //Run
 	}
 	System.gc();
-
+  
 	for(dim <- 2 to 5 by 1) {
 		for(size <- minSize to  maxSize by 1) {
 			var minTime=Long.MaxValue;
@@ -295,7 +296,7 @@ class experiments {
 				CombiGrid.CombiGrid(buildLevelVector(size, dim, isotropic)); //Create
 				CombiGrid.FillCurrentGridWithOnes();                 //Fill
 				var start = System.currentTimeMillis();
-				CombiGrid.hierarchizeUnoptimized();                  //Run
+				CombiGrid.hierarchizeOptimized();                  //Run
 				val end = System.currentTimeMillis();
 				val time = end - start;
 				if(time < minTime)
@@ -346,6 +347,10 @@ class experiments {
 	}
 	System.gc();
 
+  val mb = 1024*1024
+  val runtime = Runtime.getRuntime
+  System.out.println("** Used Memory before runing:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
+  
 	for(dim <- 2 to 5 by 1) {
 		for(size <- minSize to  maxSize by 1) {
 			var minTime=Long.MaxValue;
@@ -354,6 +359,7 @@ class experiments {
 			var totalTime: Long = 0;
 
 			for(i <- 0 to repititions-1 by 1) {
+        
 				System.gc();
 				try {Thread.sleep(1000);} catch {
 				case e: InterruptedException => println("error: " + e)
@@ -370,9 +376,10 @@ class experiments {
 					maxTime = time;
 				times(i) = time;
 				totalTime += time;
+        System.out.println("** Used Memory after rep " + i + ":  " + (runtime.totalMemory - runtime.freeMemory) / mb)
 			}
 			val avgTime = totalTime / repititions;
-
+      System.out.println("** Used Memory after run:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
       var median: Long=0;
       scala.util.Sorting.quickSort(times); //Sorts from smallest to largest
       if (repititions % 2 == 0) { //if even, take average over two middle values as median.

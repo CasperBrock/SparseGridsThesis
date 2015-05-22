@@ -23,23 +23,23 @@ object CombiGrid {
 //Variables for the recursion:
 var recTile=5; //Some values are hard coded in the original.
 val recTallPar=0.3; 
-val recMaxSpawn=3; //Public, for varying within the test.
-val recMinSpawn=2; //Public, for varying within the test.
+var recMaxSpawn=9; //Public, for varying within the test.
+var recMinSpawn=6; //Public, for varying within the test.
 var rf:Array[Float]=Array(0);
 
 
 //Main. Use to launch.
 def main(args: Array[String]): Unit = {
     println("runs")
-		levels = Array(3,3,3);
+		levels = Array(4,5,4);
 		CombiGrid(levels);
 		FillArrayWithOnes(grid);
     
-    hierarchizeRecursive();
+    //hierarchizeRecursive();
     
       
-		 //hierarchizeRecursiveThreaded();
-  
+		 hierarchizeRecursiveThreaded();
+   
      PrintArray(grid)
      
 		var grid2 = new ParArray[Double](grid.size)
@@ -53,7 +53,7 @@ def main(args: Array[String]): Unit = {
 						//levels= Array(5, 5, 5, 5, 5);
 		CombiGrid(levels);
 		FillArrayWithOnes(grid);
-		hierarchizeUnoptimized();  
+		hierarchizeOptimized();  
 		//PrintArray(grid);
 						//println(gridSize)
 						//pointsPerDimension.foreach(l => print(""+l+'\t'))
@@ -100,6 +100,13 @@ def CombiGrid(levelsInput: Array[Int]){
   levels = levelsInput.clone();
   
   recTile = levels(0); //Important for the recursive algorithms speed.
+  
+  var maxlvl=0;
+  var maxval=0;
+
+  recMaxSpawn = levels(0)-2
+  recMinSpawn = levels(0)-5
+
   
 	dimensions = levelsInput.length;
 	pointsPerDimension = new Array[Int](dimensions);
@@ -168,7 +175,7 @@ def PrintArray(grid: ParArray[Double]){
 	}
 }  
 
-def hierarchizeUnoptimized() {
+def hierarchizeOptimized() {
 
 	var dimension:Int=0;
 var start:Int=0;
@@ -273,16 +280,17 @@ for(i <- 0 to dimensions-1 by 1) {
 fullInterval.l(6) = 0 ; // no predecessors to the left
 fullInterval.l(7) = 0 ; // no predecessors to the right
 var center = pos(centerInd);
-val H = new Thread(new hierRecThreads(0, dimensions, center, fullInterval, 1));
-H.run();
-//hierRecThreads(0, dimensions, center, fullInterval, 1);
+//val H = new Thread(new hierRecThreads(0, dimensions, center, fullInterval, 1));
+//H.run();
+hierRecThreads(0, dimensions, center, fullInterval, 1);
 }
 
-class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) extends Runnable {
-
-   
-	//For running in threads
-  def run(){	 
+//class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) extends Runnable {
+//
+//   
+//	//For running in threads
+//  def run(){	 
+def hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int){
 		val level = leveli;
 		var s=si;
 		val ic = new Content();
@@ -295,14 +303,13 @@ class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) 
 				localSize += ic.l(i);
 			}
 		}
-
+    
 		if(localSize == 0) { // singleton cache line
 			if(ic.l(0) <= 0) { // real singletons, t, center, inputContent
 				println("s = " + s + ", t = " + t)
 				for(i <- s to t-1 by 1) { 
 					var rmask = myPow2(i);
 					var dist = myPow2(-ic.l(i));
-					System.out.println(dist);
 					var lVal:Double=0; //don't define before using.
 					var rVal:Double=0; //doubles - define at first use instead.
 					if((ic.l(6) & rmask)!=0) { //Checks if the bitwise combination equals to 1.
@@ -369,7 +376,6 @@ class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) 
 				var d0dist = myPow2(ic.l(0));
 				var first = - d0dist +1;
 				var last = + d0dist -1;
-				println(s + " " + t)
 				for(dim <- s to t-1 by 1) {
 					var rmask = (1 << dim); 
 					var dist = myPow2(-ic.l(dim));
@@ -418,7 +424,7 @@ class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) 
 					midI.l(r) = -midI.l(r);
 					ic.l(r) = ic.l(r) - 1;
 					var dist = myPow2(ic.l(r)); // already reduced!
-					//leftI.asInt = ic.asInt;
+					
 					var leftI:Content=new Content();
 					leftI.copy(ic.l);
 					var rmask = myPow2(r);
@@ -434,43 +440,32 @@ class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) 
           val cOut = center;
           
 					if ((localSize >= recMinSpawn) && (localSize <= recMaxSpawn) && r!=0){
-          System.out.println("Inside recursion");
+          
           if(r > s) {
-//              val t1 = new Thread (
-                new hierRecThreads(sOut, rOut, cOut, midI, level + 1).run();
-//                  .run()
+
+                hierRecThreads(sOut, rOut, cOut, midI, level + 1);
+
 						}
             
-          
-            val t2 = Future{new hierRecThreads(sOut, tOut, cOut - dist, leftI, level + 1).run()}
-//            val t2 = new Thread (
-//                new hierRecThreads(sOut, tOut, cOut - dist, leftI, level + 1))
-//                  .start()
+          val t2: Thread = new Thread { override def run(): Unit = {
+            hierRecThreads(sOut, tOut, cOut - dist, leftI, level + 1);
+          }};
+          t2.start();
+       
+        
+        val t3: Thread = new Thread { override def run(): Unit = {
+          hierRecThreads(sOut, tOut, cOut + dist, ic, level + 1)
+        }};
+        t3.start();
               
-            val t3 = Future{new hierRecThreads(sOut, tOut, cOut + dist, ic, level + 1).run()}
-//            val t3 = new Thread (
-//                new hierRecThreads(sOut, tOut, cOut + dist, ic, level + 1))
-//                  .start()
-           
-            val waitTuple = for{ //This simply ensures that we wait for both actions to complete, before continuing.
-              t2Done <- t2
-              t3Done <- t3
-            }
-
-            if (t > r) {
-                new hierRecThreads(rOut, tOut, cOut, midI, level + 1).run();          
-            } 
-            
-//						if (t > r) {
-//              //val t4 = new Thread (
-//                new hierRecThreads(rOut, tOut, cOut, midI, level + 1).run();
-//             //     .run()						
-//						} 
+        t2.join()
+        t3.join()
+        
 					} else { //don't run in seperate threads.
-						if(r > s) hierarchizeRec(sOut, rOut, cOut, midI, 0);
-						hierarchizeRec(sOut, tOut, cOut - dist, leftI, 0);
-						hierarchizeRec(sOut, tOut, cOut + dist, ic, 0);
-						if(t > r) hierarchizeRec(rOut, tOut, cOut, midI, 0);
+						if(r > s) hierRecThreads(sOut, rOut, cOut, midI, 0);
+						hierRecThreads(sOut, tOut, cOut - dist, leftI, 0);
+						hierRecThreads(sOut, tOut, cOut + dist, ic, 0);
+						if(t > r) hierRecThreads(rOut, tOut, cOut, midI, 0);
 					}
 
 
@@ -478,7 +473,8 @@ class hierRecThreads(si:Int, ti:Int, centeri:Int, interval:Content, leveli:Int) 
 
 		}
 
-  }
+//  }
+  
 	}
 
 
@@ -499,7 +495,7 @@ def hierarchizeRec(si:Int, t:Int, center:Int, interval:Content, level:Int) {//Ac
 			for(i <- s to t-1 by 1) { 
 				var rmask = myPow2(i);
 				var dist = myPow2(-ic.l(i));
-				System.out.println(dist);
+				//System.out.println(dist);
 				var lVal:Double=0; //don't define before using.
 				var rVal:Double=0; //doubles - define at first use instead.
 				if((ic.l(6) & rmask)!=0) { //Checks if the bitwise combination equals to 1.

@@ -41,8 +41,8 @@ object experiments {
       } else 
 			    println("Running test "+testName+" with minSize " + minSize + ", and maxSize " + maxSize);
 
-//			hierarchizeVarSizeExperiment(minSize, maxSize, 10, true); //run varying size on both iso and anisotropic grids.
-//			hierarchizeVarSizeExperiment(minSize, maxSize, 10, false);
+			hierarchizeVarSizeExperiment(minSize, maxSize, 10, true); //run varying size on both iso and anisotropic grids.
+			hierarchizeVarSizeExperiment(minSize, maxSize, 10, false);
 			recursiveVarSizeExperiment(minSize, maxSize, 10, true);
 			recursiveVarSizeExperiment(minSize, maxSize, 10, false);
       println("All tests finished.")
@@ -137,7 +137,7 @@ object experiments {
   	for(j <- 0 to 9999 by 1) {
 	  	CombiGrid.CombiGrid(buildLevelVector(15, 2, true)); //Create
 		  CombiGrid.FillCurrentGridWithOnes();                 //Fill
-		  CombiGrid.hierarchizeUnoptimized();                  //Run
+		  CombiGrid.hierarchizeOptimized();                  //Run
 	  }
 	  System.gc();
 
@@ -156,7 +156,7 @@ object experiments {
 				  CombiGrid.CombiGrid(buildLevelVector(size, dim, isotropic)); //Create
 				  CombiGrid.FillCurrentGridWithOnes();                 //Fill
 				  var start = System.currentTimeMillis();
-				  CombiGrid.hierarchizeUnoptimized();                  //Run
+				  CombiGrid.hierarchizeOptimized();                  //Run
 				  var end = System.currentTimeMillis();
 				  var time = end - start;
 				  if(time < minTime) {
@@ -277,10 +277,10 @@ object experiments {
 	for(i <- 0 to 9999 by 1) {
 		CombiGrid.CombiGrid(buildLevelVector(15, 2, false)); //Create
 		CombiGrid.FillCurrentGridWithOnes();                 //Fill
-		CombiGrid.hierarchizeUnoptimized();                  //Run
+		CombiGrid.hierarchizeOptimized();                  //Run
 	}
 	System.gc();
-
+  
 	for(dim <- 2 to 5 by 1) {
 		for(size <- minSize to  maxSize by 1) {
 			var minTime=Long.MaxValue;
@@ -296,7 +296,7 @@ object experiments {
 				CombiGrid.CombiGrid(buildLevelVector(size, dim, isotropic)); //Create
 				CombiGrid.FillCurrentGridWithOnes();                 //Fill
 				var start = System.currentTimeMillis();
-				CombiGrid.hierarchizeUnoptimized();                  //Run
+				CombiGrid.hierarchizeOptimized();                  //Run
 				val end = System.currentTimeMillis();
 				val time = end - start;
 				if(time < minTime)
@@ -346,7 +346,7 @@ object experiments {
 		CombiGrid.hierarchizeRecursiveThreaded();                  //Run
 	}
 	System.gc();
-
+  
 	for(dim <- 2 to 5 by 1) {
 		for(size <- minSize to  maxSize by 1) {
 			var minTime=Long.MaxValue;
@@ -372,9 +372,10 @@ object experiments {
 					maxTime = time;
 				times(i) = time;
 				totalTime += time;
+       
 			}
 			val avgTime = totalTime / repititions;
-
+      
       var median: Long=0;
       scala.util.Sorting.quickSort(times); //Sorts from smallest to largest
       if (repititions % 2 == 0) { //if even, take average over two middle values as median.
