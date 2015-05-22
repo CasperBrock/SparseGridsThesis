@@ -11,10 +11,10 @@ public class ScalingTest {
 	public static void main(String[] args) {
 		//int[] levels = {8, 6, 5, 3, 2};
 		printInfo();
-		int[] levels = {5, 5, 5, 5, 5};
+		int[] levels = {10, 6, 4, 3, 2};
 		CombiGrid cg = new CombiGrid(levels);
 		CombiGridAligned cga = new CombiGridAligned(levels, 32);
-		//test(cg, 10);
+		test(cg, 10);
 		//testOptimized(cg, 10);
 		//testOptimized(cga, 10);
 		//testOptimizedNoUnroll(cg, 10);
@@ -24,9 +24,9 @@ public class ScalingTest {
 		//testOptimizedThreads(cg, 10);
 		//testOptimizedThreads(cga, 10);
 		//testOptimizedThreadsNoUnroll(cg, 10);
-		//testRecursive(cga, 10);
-		testRecursiveThreads(cga, 10);
-		testRecursiveThreadsFixed(cga, 10);
+		testRecursive(cga, 10);
+		//testRecursiveThreads(cga, 10);
+		//testRecursiveThreadsFixed(cga, 10);
 		
 //		int[] levels2 = {10, 10};
 		//CombiGrid cg = new CombiGrid(levels);
@@ -806,6 +806,7 @@ public class ScalingTest {
 				end = System.currentTimeMillis();
 				time = end - start;
 				totalTime += time;
+				System.out.println(time);
 			}
 			avgTime = totalTime / repititions;
 			System.out.println("" + threads + '\t' + avgTime);
