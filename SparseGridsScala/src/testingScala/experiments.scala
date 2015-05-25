@@ -50,14 +50,15 @@ object experiments {
   
   def recursiveVarSizeExperiment(minSize: Int, maxSize: Int, rep: Int, iso:Boolean) {
     ScalaRecursiveThreadedHierarchizeVaryingSize(minSize, maxSize, rep, iso);
+    ScalaRecursiveThreadedWhileLoopsVaryingSize(minSize, maxSize, rep, iso);
     ScalaRecursiveNonThreadedVaryingSize(minSize, maxSize, rep, iso);
   }
 
 	def hierarchizeVarSizeExperiment(minSize: Int, maxSize: Int, rep: Int, iso:Boolean) {
-		ScalaNonThreadedVaryingSize(minSize, maxSize, rep, iso);
-    ScalaParallelStreamVaryingSize(minSize, maxSize, rep, iso);
-    ScalaHierarchizeSequentialVaryingSize(minSize, maxSize, rep, iso);
-	}
+    ScalaHierarchizeUnoptimizedSequentialVaryingSize(minSize, maxSize, rep, iso)
+    ScalahierarchizeUnoptimizedParArrayVaryingSize(minSize, maxSize, rep, iso);
+    ScalaHierarchizePoleBlockOptimizedParArrayVaryingSize(minSize, maxSize, rep, iso)
+  }
 
 	def buildLevelVector(size: Int, dimensionsInput: Int, isotropic: Boolean): Array[Int] =  {
 			if(dimensionsInput < 2)
@@ -66,6 +67,7 @@ object experiments {
 				throw new IllegalArgumentException("Size must be atleast twice the number of dimensions");
 			var rem = size - (dimensionsInput * 2);
 			var levels = new Array[Int](dimensionsInput);
+      
 			if (!isotropic) { //If anisotropic
 				for(i <- 0 to dimensionsInput-1 by 1) {
 					var used=0;
@@ -125,19 +127,106 @@ object experiments {
 	    }
 	    sb.toString();
   }
+  
+  def ScalaRecursiveThreadedWhileLoopsVaryingSize(minSize: Int, maxSize: Int, repititions: Int, isotropic: Boolean) {
+    
+  var data = scala.collection.mutable.MutableList[String]();
+  data += PCInfo();
+  data += "ScalaRecursiveThreadedWhileLoopsVaryingSize";
+  data += "Grid" + '\t' + "Median" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev";
 
-	def ScalaNonThreadedVaryingSize(minSize: Int, maxSize: Int, repititions: Int, isotropic: Boolean) {
+  //Warmup
+  var warmup = 0
+  while (warmup < 10000) {
+    CombiGrid.CombiGrid(buildLevelVector(15, 2, false)); //Create
+    CombiGrid.FillCurrentGridWithOnes();                 //Fill
+    CombiGrid.hierarchizeRecursiveThreadedWhileLoops();                  //Run
+    warmup = warmup + 1
+  }
+  System.gc();
+
+  val mb = 1024*1024
+  val runtime = Runtime.getRuntime
+  System.out.println("** Used Memory before runing:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
+  var dim = 2
+  while (dim <= 5) {
+    System.out.println("Running for dim " + dim)
+    var size = minSize
+    System.out.println("size reset to " + size)
+    while (size <= maxSize) {
+      var minTime=Long.MaxValue;
+      var maxTime=Long.MinValue;  
+      var times: Array[Long] = new Array[Long](repititions);
+      var totalTime: Long = 0;
+
+      var i = 0
+      System.out.println("Iteration reset to " + i)
+      while (i < repititions) {
+        
+        System.gc();
+        try {Thread.sleep(1000);} catch {
+        case e: InterruptedException => println("error: " + e)
+        }
+        System.out.println("slept")
+        CombiGrid.CombiGrid(buildLevelVector(size, dim, isotropic)); //Create
+        CombiGrid.FillCurrentGridWithOnes();                 //Fill
+        var start = System.currentTimeMillis();
+        System.out.println("Starting algo.")
+        CombiGrid.hierarchizeRecursiveThreadedWhileLoops();                  //Run
+        val end = System.currentTimeMillis();
+        val time = end - start;
+        if(time < minTime)
+          minTime = time;
+        if(time > maxTime)
+          maxTime = time;
+        times(i) = time;
+        totalTime += time
+        i = i + 1
+        
+      }
+      val avgTime = totalTime / repititions;
+      
+      var median: Long=0;
+      scala.util.Sorting.quickSort(times); //Sorts from smallest to largest
+      if (repititions % 2 == 0) { //if even, take average over two middle values as median.
+         median = (times(repititions/2) + times((repititions/2)+1))/2; //take average of the two median values, if even.
+      } else { median=times(repititions/2)}
+        
+      //Calculate standard deviation
+      var dev: Double = 0;
+      for(d <- times) {
+        dev += Math.pow(d - avgTime, 2);
+      }
+      dev = Math.sqrt(dev / (times.length - 1));
+      data += ("" + CombiGrid.getLevelVector() + '\t' + median + '\t' + minTime + '\t' + maxTime + '\t' + dev);
+      size = size + 1
+      
+    }
+    System.out.println("Adding to dim")
+    dim = dim + 1
+  }
+  System.out.println("Finished test!")
+  if(isotropic) {
+    val form = "Isotropic";
+    writeToFile("Scala hierarchizeRecursiveThreadedWhileLoops VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
+  } else {
+    val form = "Anisotropic";
+    writeToFile("Scala hierarchizeRecursiveThreadedWhileLoops VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
+  }
+}
+
+	def ScalaHierarchizeUnoptimizedSequentialVaryingSize(minSize: Int, maxSize: Int, repititions: Int, isotropic: Boolean) {
 		var dev: Double = 0;
 	  var data  = scala.collection.mutable.MutableList[String]();
 	  data += PCInfo();
-	  data += "ScalaNonThreadedVaryingSize";
+	  data += "Scala hierarchizeUnoptimizedSequential";
 	  data += "Grid" + '\t' + "Median" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev";
 
   	//Warmup
   	for(j <- 0 to 9999 by 1) {
 	  	CombiGrid.CombiGrid(buildLevelVector(15, 2, true)); //Create
 		  CombiGrid.FillCurrentGridWithOnes();                 //Fill
-		  CombiGrid.hierarchizeOptimized();                  //Run
+		  CombiGrid.hierarchizeUnoptimizedSequential();                  //Run
 	  }
 	  System.gc();
 
@@ -156,7 +245,7 @@ object experiments {
 				  CombiGrid.CombiGrid(buildLevelVector(size, dim, isotropic)); //Create
 				  CombiGrid.FillCurrentGridWithOnes();                 //Fill
 				  var start = System.currentTimeMillis();
-				  CombiGrid.hierarchizeOptimized();                  //Run
+				  CombiGrid.hierarchizeUnoptimizedSequential();                  //Run
 				  var end = System.currentTimeMillis();
 				  var time = end - start;
 				  if(time < minTime) {
@@ -192,25 +281,25 @@ object experiments {
         
 	if(isotropic) {
 		val form = "Isotropic";
-		writeToFile("ScalaNonThreaded VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
+		writeToFile("Scala hierarchizeUnoptimizedSequential VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
 	} else {
 		val form = "Anisotropic";
-		writeToFile("ScalaNonThreaded VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
+		writeToFile("Scala hierarchizeUnoptimizedSequential VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
 	  }
 	}
 
-	def ScalaParallelStreamVaryingSize(minSize: Int, maxSize: Int, repititions: Int, isotropic: Boolean) {
+	def ScalaHierarchizePoleBlockOptimizedParArrayVaryingSize(minSize: Int, maxSize: Int, repititions: Int, isotropic: Boolean) {
 		var dev: Double = 0;
 	  var data = scala.collection.mutable.MutableList[String]();
 	  data += PCInfo();
-	  data += "ScalaParallelStreamVaryingSize";
+	  data += "ScalaPoleBlockParArrayVaryingSize";
 	  data += "Grid" + '\t' + "Median" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev";
 
   	//Warmup
 	  for(i <- 0 to 9999 by 1) {
 		  CombiGrid.CombiGrid(buildLevelVector(15, 2, false)); //Create
 		  CombiGrid.FillCurrentGridWithOnes();                 //Fill
-		  CombiGrid.hierarchizeUnoptimizedParallelStream();                  //Run
+		  CombiGrid.hierarchizePoleBlockParArray();                  //Run
 	  }
 	  System.gc();
 
@@ -229,7 +318,7 @@ object experiments {
   				CombiGrid.CombiGrid(buildLevelVector(size, dim, isotropic)); //Create
 	  			CombiGrid.FillCurrentGridWithOnes();                 //Fill
 		  		var start = System.currentTimeMillis();
-			  	CombiGrid.hierarchizeUnoptimizedParallelStream();                  //Run
+			  	CombiGrid.hierarchizePoleBlockParArray();                  //Run
 				  val end = System.currentTimeMillis();
   				val time = end - start;
 	  			if(time < minTime)
@@ -259,25 +348,25 @@ object experiments {
 	  }
 	  if(isotropic) {
 		  val form = "Isotropic";
-		  writeToFile("Scala ParallelStream VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
+		  writeToFile("Scala PoleBlockOptimizedParArray VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
 	  } else {
 		  val form = "Anisotropic";
-		  writeToFile("Scala ParallelStream VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
+		  writeToFile("Scala PoleBlockOptimizedParArray VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
 	  }
 	}
 
-	def ScalaHierarchizeSequentialVaryingSize(minSize: Int, maxSize: Int, repititions: Int, isotropic: Boolean) {
+	def ScalahierarchizeUnoptimizedParArrayVaryingSize(minSize: Int, maxSize: Int, repititions: Int, isotropic: Boolean) {
 		var dev: Double = 0;
 	var data = scala.collection.mutable.MutableList[String]();
 	data += PCInfo();
-	data += "ScalaHierarchizeUnoptimizedSequentialVaryingSize";
+	data += "ScalaHierarchizeUnoptimizedParArrayVaryingSize";
 	data += "Grid" + '\t' + "Median" + '\t' + "Min" + '\t' + "Max" + '\t' + "StdDev";
 
 	//Warmup
 	for(i <- 0 to 9999 by 1) {
 		CombiGrid.CombiGrid(buildLevelVector(15, 2, false)); //Create
 		CombiGrid.FillCurrentGridWithOnes();                 //Fill
-		CombiGrid.hierarchizeOptimized();                  //Run
+		CombiGrid.hierarchizeUnoptimizedParArray();                  //Run
 	}
 	System.gc();
   
@@ -296,7 +385,7 @@ object experiments {
 				CombiGrid.CombiGrid(buildLevelVector(size, dim, isotropic)); //Create
 				CombiGrid.FillCurrentGridWithOnes();                 //Fill
 				var start = System.currentTimeMillis();
-				CombiGrid.hierarchizeOptimized();                  //Run
+				CombiGrid.hierarchizeUnoptimizedParArray();                  //Run
 				val end = System.currentTimeMillis();
 				val time = end - start;
 				if(time < minTime)
@@ -325,10 +414,10 @@ object experiments {
 	}
 	if(isotropic) {
 		val form = "Isotropic";
-		writeToFile("Scala hierarchizeUnoptimized VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
+		writeToFile("Scala ScalaHierarchizeUnoptimizedParArray VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
 	} else {
 		val form = "Anisotropic";
-		writeToFile("Scala hierarchizeUnoptimized VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
+		writeToFile("Scala ScalaHierarchizeUnoptimizedParArray VaryingSize " + minSize + " " + maxSize + " " + form, data.toList);
 	}
 	}
 
