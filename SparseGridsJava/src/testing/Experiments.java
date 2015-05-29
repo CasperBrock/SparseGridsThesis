@@ -43,26 +43,26 @@ public class Experiments {
 	}
 
 	public static void scalingExperiment(int size, int dim, int rep, int min, int max, boolean iso) {
-		//UnoptimizedThreadsScaling(size, dim, rep, min, max, iso);
-		//UnoptimizedThreadsOnceScaling(size, dim, rep, min, max, iso);
-		//UnoptimizedTasksScaling(size, dim, rep, min, max, iso);
-		//OptimizedThreadsScaling(size, dim, rep, min, max, iso);
-		//OptimizedThreadsNoUnrollScaling(size, dim, rep, min, max, iso);
-		//AlignedThreadsScaling(size, dim, rep, min, max, iso);
-		//AlignedThreadsOnceScaling(size, dim, rep, min, max, iso);
-		//AlignedTasksScaling(size, dim, rep, min, max, iso);
+		UnoptimizedThreadsScaling(size, dim, rep, min, max, iso);
+		UnoptimizedThreadsOnceScaling(size, dim, rep, min, max, iso);
+		UnoptimizedTasksScaling(size, dim, rep, min, max, iso);
+		OptimizedThreadsScaling(size, dim, rep, min, max, iso);
+		OptimizedThreadsNoUnrollScaling(size, dim, rep, min, max, iso);
+		AlignedThreadsScaling(size, dim, rep, min, max, iso);
+		AlignedThreadsOnceScaling(size, dim, rep, min, max, iso);
+		AlignedTasksScaling(size, dim, rep, min, max, iso);
 		RecursiveScaling(size, dim, rep, min, max, iso);
 	}
 
 	public static void varyingSizeExperiment(int minSize, int maxSize, int rep, int threads, boolean iso) {
-		//UnoptimizedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
-		//UnoptimizedThreadsOnceVaryingSize(minSize, maxSize, rep, threads, iso);
-		//UnoptimizedTasksVaryingSize(minSize, maxSize, rep, threads, iso);
-		//OptimizedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
-		//OptimizedThreadsNoUnrollVaryingSize(minSize, maxSize, rep, threads, iso);
-		//AlignedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
-		//AlignedThreadsOnceVaryingSize(minSize, maxSize, rep, threads, iso);
-		//AlignedTasksVaryingSize(minSize, maxSize, rep, threads, iso);
+		UnoptimizedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
+		UnoptimizedThreadsOnceVaryingSize(minSize, maxSize, rep, threads, iso);
+		UnoptimizedTasksVaryingSize(minSize, maxSize, rep, threads, iso);
+		OptimizedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
+		OptimizedThreadsNoUnrollVaryingSize(minSize, maxSize, rep, threads, iso);
+		AlignedThreadsVaryingSize(minSize, maxSize, rep, threads, iso);
+		AlignedThreadsOnceVaryingSize(minSize, maxSize, rep, threads, iso);
+		AlignedTasksVaryingSize(minSize, maxSize, rep, threads, iso);
 		RecursiveVaryingSize(minSize, maxSize, rep, threads, iso);
 	}
 

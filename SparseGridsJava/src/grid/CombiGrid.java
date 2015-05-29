@@ -18,11 +18,66 @@ public class CombiGrid {
 	public int gridSize;
 	public int[] pointsPerDimension;
 
+	public static int[] levels(int dimensions, int size) {
+		int rem = size - (dimensions * 2);
+		int[] levels = new int[dimensions];
+		for(int i = 0; i < dimensions; i++) {
+			int used;
+			if(rem == 1) {
+				used = 1;
+				rem = 0;
+			}
+			else if(i + 1 == dimensions) {
+				used = rem;
+				rem = 0;
+			}
+			else {
+				used = (int)Math.ceil(rem / 2.0);
+				rem = rem - used;
+			}
+			levels[i] = 2 + used;
+		}
+
+		return levels;
+	}
+
+	public static int[] levelsIso(int dimensions, int size) {
+		int level = size / dimensions;
+		int[] levels = new int[dimensions];
+		for(int i = 0; i < dimensions; i++) {
+			levels[i] = level;
+		}
+
+		return levels;
+	}
+
 	public static void main(String[] args) {
-		int[] levels = {5, 5, 5, 5, 5};
-		CombiGrid grid = new CombiGrid(levels);
-		grid.setValues(GridFunctions.ALLONES);
-		grid.hierarchizeUnoptimizedTasks(16);
+
+		for(int dimensions = 2; dimensions <= 5; dimensions++) {
+			for(int size = 32; size <= 33; size++) {
+				int[] levels = levels(dimensions, size);
+				int gridsize = 1;
+				for(int i : levels) {
+					gridsize *= Math.pow(2, i) - 1;
+				}
+
+				StringBuilder s = new StringBuilder();
+				int sum = 0;
+				for(int i : levels) {
+					sum += i;
+					s.append("" +  i + " ");
+				}
+				s.append("[" + sum + "]");
+				System.out.print(s.toString() + '\t' + gridsize);
+				System.out.println();
+			}
+		}
+
+		//int[] levels = {6, 6, 6, 6, 6};
+		//CombiGrid grid = new CombiGrid(levels);
+		//System.out.println(grid.gridSize);
+		//grid.setValues(GridFunctions.ALLONES);
+		//grid.hierarchizeUnoptimizedTasks(16);
 		//grid.printValues();
 		/*int[] levels = {};
 		CombiGrid grid = new CombiGrid(levels);
@@ -35,7 +90,7 @@ public class CombiGrid {
 		grid2.hierarchizeUnoptimized();
 		System.out.println(grid2.getLevels());
 		//grid2.printValues();
-		
+
 		if(grid2.compare(grid))
 			System.out.println("Grids are equal");*/
 		//grid.hierarchizeUnoptimizedThreads(4);
@@ -115,7 +170,7 @@ public class CombiGrid {
 			}
 		}
 	}
-	
+
 	/**
 	 * Returns a string of the level vector for the grid as well as the size of the vector
 	 * 
@@ -1101,7 +1156,7 @@ public class CombiGrid {
 			try { for (Future<?> fut : futures) fut.get(); } catch (Exception e) {}
 			futures.clear();
 		}
-		
+
 		executor.shutdown();
 	}
 

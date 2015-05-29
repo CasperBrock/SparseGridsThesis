@@ -1302,29 +1302,6 @@ public class CombiGridAligned {
 			
 			final int[] mid = copy(midI);
 
-			/*if(threadCounter.get() < maxNumberOfThreads) {
-				//Make a new thread, increment counter and start it
-				threadCounter.getAndIncrement();
-				final int re = r;
-				final int se = s;
-				final int te = t;
-				final int dis = dist;
-				Thread thread = new Thread(new Runnable() { public void run() {
-					if(re > se) { hierarchizeRecThreads(se, re, center, midI, threadCounter, maxNumberOfThreads); }
-					hierarchizeRecThreads(se, te, center - dis, leftI, threadCounter, maxNumberOfThreads);
-					hierarchizeRecThreads(se, te, center + dis, ic, threadCounter, maxNumberOfThreads);
-					if(te > re) { hierarchizeRecThreads(re, te, center, midI, threadCounter, maxNumberOfThreads); }
-				}});
-
-				thread.start();
-			}
-
-			else {
-				if(r > s) { hierarchizeRecThreads(s, r, center, midI, threadCounter, maxNumberOfThreads); }
-				hierarchizeRecThreads(s, t, center - dist, leftI, threadCounter, maxNumberOfThreads);
-				hierarchizeRecThreads(s, t, center + dist, ic, threadCounter, maxNumberOfThreads);
-				if(t > r) { hierarchizeRecThreads(r, t, center, midI, threadCounter, maxNumberOfThreads); }
-			}*/
 			if(r > s) hierarchizeRecThreads(s, r, center, midI, recLevel + 1, maxRecLevel);
 			
 			final int se = s;
@@ -1338,7 +1315,6 @@ public class CombiGridAligned {
 			
 			//Threading stuff here
 			if(r != 0 && recLevel < maxRecLevel) {
-				//Make a new thread, increment counter and start it
 				thread1 = new Thread(new Runnable() { public void run() {
 					hierarchizeRecThreads(se, te, cent - dis, left, recLevel + 1, maxRecLevel);
 				}});
@@ -1348,7 +1324,6 @@ public class CombiGridAligned {
 				hierarchizeRec(se, te, cent - dis, left);
 			
 			if(r != 0 && recLevel < maxRecLevel) {
-				//Make a new thread, increment counter and start it
 				thread2 = new Thread(new Runnable() { public void run() {
 					hierarchizeRecThreads(se, te, cent + dis, right, recLevel + 1, maxRecLevel);
 				}});
