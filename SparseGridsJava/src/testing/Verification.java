@@ -3,10 +3,14 @@ package testing;
 import grid.*;
 import gridFunctions.*;
 
+
+/***
+ * Class for verifying a method by comparing its resulting grid against another method.
+ */
 public class Verification {
 
 	public static void main(String[] args) {
-		//verifyUnoptimized();
+		verifyUnoptimized();
 		verifyOptimized();
 	}
 

@@ -1,5 +1,8 @@
 package grid;
 
+/***
+ * Class to return CombiGrid and CombiGridAligned with a given level sum and a given number of dimensions
+ */
 public class CombiGridBuilder {
 
 	/***

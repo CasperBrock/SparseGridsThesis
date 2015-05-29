@@ -1,15 +1,14 @@
 package testing;
 import grid.CombiGrid;
-import gridFunctions.GridFunction;
 import gridFunctions.GridFunctions;
 
 import java.util.Arrays;
 
-public class TestSuite {
 
-	/**
-	 * @param args
-	 */
+/***
+ * Old class for testing different methods. Deprecated.
+ */
+public class TestSuite {
 
 	static long nanoStart;
 	static long nanoStop;
@@ -62,7 +61,6 @@ public class TestSuite {
 			for (int j = 2; j<6;j++){// this loop will relate to number of levels.
 				bestThreads=0;
 				double bestThreadsTime=Integer.MAX_VALUE;
-				double best = Integer.MAX_VALUE;
 				for (k = 1; k<cores*3;k++){//this loop iterates over number of threads.
 					//System.out.println("Test with " + i + " dimensions, all with level " + j + ", running in "+k+" threads.");
 					time = 0;
@@ -103,7 +101,6 @@ public class TestSuite {
 		for (int i = 2; i<7; i++){// this loop will relate to the number of dimensions, as this scales strongest		
 			for (int j = 2; j<7;j++){// this loop will relate to number of levels.
 				bestThreads=0;
-				double best = Integer.MAX_VALUE;
 				for (k = 1; k<cores*3;k++){//this loop iterates over number of threads.
 					//System.out.println("Test with " + i + " dimensions, all with level " + j + ", running in "+k+" threads.");
 					time = 0;
@@ -136,7 +133,6 @@ public class TestSuite {
 		for (int i = 2; i<7; i++){// this loop will relate to the number of dimensions, as this scales strongest		
 			for (int j = 2; j<7;j++){// this loop will relate to number of levels.
 				bestThreads=0;
-				double best = Integer.MAX_VALUE;
 					time = 0;
 					for (int l = 0;l<10;l++){
 
@@ -209,7 +205,6 @@ public class TestSuite {
 		for (int i = 2; i<7; i++){// this loop will relate to the number of dimensions, as this scales strongest		
 			for (int j = 2; j<7;j++){// this loop will relate to number of levels.
 				bestThreads=0;
-				double best = Integer.MAX_VALUE;
 				for (k = 1; k<10;k++){//this loop iterates over number of threads.
 					//System.out.println("Test with " + i + " dimensions, all with level " + j + ", running in "+k+" threads.");
 					time = 0;
@@ -297,7 +292,6 @@ public class TestSuite {
 	static void testSideways(){ //This method makes a big run, comparing the best result of each method, for each successive dim/lev.
 		System.out.println("dim\tlev\tthreads\ttime in ms\ttype");
 		int bestTaskAmount=0;
-		float bestTimeTask=0;
 		float currentTimeONCE = 0;
 		float bestThreadedONCE =0;
 		int bestThreadAmountONCE=0;
@@ -318,7 +312,6 @@ public class TestSuite {
 					timeTask=0;
 					bestThreadAmount=0;
 					bestTaskAmount=0;
-					bestTimeTask=0;
 					currentTimeONCE = 0;
 					bestThreadedONCE =0;
 					bestThreadAmountONCE=0;

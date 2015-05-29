@@ -1,8 +1,9 @@
 package gridFunctions;
-/*public interface GridFunction {
-	abstract double call(double[] x);
-}*/
 
+/***
+ * Class containing different functions that can be applied on a grid.
+ * Calling a function on a grid will change all the values of the grid according to the chosen function.
+ */
 public class GridFunction {
 	public static double call(double[] x, GridFunctions gf) {
 		switch (gf) {
